@@ -3,9 +3,9 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
-import { routes as assetsRoutes } from "./src/api/v1/assets/assets.routes.ts";
-import * as mongoose from "./src/db/mongoose.ts";
-import { routes as opsRoutes } from "./src/api/ops/ops.routes.ts";
+import { routes as assetsRoutes } from "@/api/v1/assets/assets.routes.ts";
+import * as mongoose from "../db/mongoose.ts";
+import { routes as opsRoutes } from "../api/ops/ops.routes.ts";
 
 // Initialize Hono app
 const app = new Hono();
@@ -57,20 +57,20 @@ app.onError((err, c) => {
 // Start server (for Bun)
 const port = parseInt(process.env.PORT || "3000");
 
-// Graceful shutdown
-const gracefulShutdown = async (signal: string) => {
-  // appLogger.info(`${signal} received. Starting graceful shutdown...`);
-  try {
-    await databaseService.disconnect();
-    appLogger.info("Database connection closed");
-  } catch (error) {
-    appLogger.error(error, "Error during database shutdown");
-  }
-  appLogger.info("Graceful shutdown completed");
-  process.exit(0);
-};
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+// // Graceful shutdown
+// const gracefulShutdown = async (signal: string) => {
+//   // appLogger.info(`${signal} received. Starting graceful shutdown...`);
+//   try {
+//     await databaseService.disconnect();
+//     appLogger.info("Database connection closed");
+//   } catch (error) {
+//     appLogger.error(error, "Error during database shutdown");
+//   }
+//   appLogger.info("Graceful shutdown completed");
+//   process.exit(0);
+// };
+// process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+// process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 // Export the app for Bun
 export default { port, fetch: app.fetch };

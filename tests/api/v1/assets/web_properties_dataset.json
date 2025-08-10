@@ -1,0 +1,261 @@
+{
+  "metadata": {
+    "description": "Censys certificate data for interview dataset",
+    "created_at": "2025-01-12",
+    "data_sources": ["censys_certificates"],
+    "certificates_count": 3,
+    "certificate_fingerprints": [
+      "00004387f2594630d0e24abb7adffeb9582e9fd12e1b2332a196764bcd9cb6ea",
+      "000047f0132eb45089224d7ed619769742bc70ba7d5ea0e7c5c96d51b474641a",
+      "00004b56524345ba80ed9402a0e611283af4e856755baa8155f638b83226c2a2"
+    ]
+  },
+  "certificates": [
+    {
+      "fingerprint_sha256": "00004387f2594630d0e24abb7adffeb9582e9fd12e1b2332a196764bcd9cb6ea",
+      "fingerprint_sha1": "a88f45556fece857071545d0e1c558ea4d78ef1c",
+      "fingerprint_md5": "89c392db35e223c579982860210c5d8f",
+      "domains": [
+        "gamecogames.com",
+        "www.gamecogames.com"
+      ],
+      "subject": {
+        "common_name": "gamecogames.com",
+        "organization": null,
+        "country": null
+      },
+      "issuer": {
+        "common_name": "R10",
+        "organization": "Let's Encrypt",
+        "country": "US"
+      },
+      "validity_period": {
+        "not_before": "2025-07-05T15:19:05Z",
+        "not_after": "2025-10-03T15:19:04Z",
+        "length_days": 90,
+        "status": "active"
+      },
+      "key_info": {
+        "algorithm": "RSA",
+        "key_size": 2048,
+        "public_key_fingerprint": "7b65165c8a971c1c63df0ee1172336fd6c7cdb9fd63d0b6738328478d4395d7f"
+      },
+      "certificate_authority": {
+        "name": "Let's Encrypt",
+        "type": "public_ca",
+        "validation_level": "domain_validated"
+      },
+      "certificate_transparency": {
+        "logs_count": 8,
+        "first_seen": "2025-07-05T16:17:36Z",
+        "logs": [
+          "cloudflare_nimbus_2025",
+          "digicert_yeti_2025",
+          "google_argon_2025_h2",
+          "google_xenon_2025_h2",
+          "letsencrypt_ct_sycamore_2025_h2_b",
+          "letsencrypt_ct_twig_2025_h2_b",
+          "sectigo_elephant_2025_h2",
+          "sectigo_tiger_2025_h2"
+        ]
+      },
+      "validation": {
+        "trusted_by_major_browsers": true,
+        "validation_paths": {
+          "apple": true,
+          "chrome": true,
+          "microsoft": true,
+          "mozilla": true
+        }
+      },
+      "security_analysis": {
+        "zlint_status": "errors_present",
+        "failed_lints": [
+          "e_sub_cert_aia_does_not_contain_ocsp_url",
+          "n_subject_common_name_included"
+        ],
+        "risk_level": "low"
+      },
+      "usage_indicators": {
+        "ever_seen_in_scan": true,
+        "last_seen": "2025-07-10T15:51:42Z"
+      }
+    },
+    {
+      "fingerprint_sha256": "000047f0132eb45089224d7ed619769742bc70ba7d5ea0e7c5c96d51b474641a",
+      "fingerprint_sha1": "43513013a48fc2050a41a1a38e9d13e5de58d283",
+      "fingerprint_md5": "8eead7f435729bdece80ce3fd6a118a7",
+      "domains": [
+        "www.ww.prayerculture.tv"
+      ],
+      "subject": {
+        "common_name": "www.ww.prayerculture.tv",
+        "organization": null,
+        "country": null
+      },
+      "issuer": {
+        "common_name": "R10",
+        "organization": "Let's Encrypt",
+        "country": "US"
+      },
+      "validity_period": {
+        "not_before": "2025-04-07T06:41:53Z",
+        "not_after": "2025-07-06T06:41:52Z",
+        "length_days": 90,
+        "status": "expired"
+      },
+      "key_info": {
+        "algorithm": "RSA",
+        "key_size": 4096,
+        "public_key_fingerprint": "47cc8b87e9a0db7131c57c2c651dc0eceb37934906a39c8b4f71467f02ab95c9"
+      },
+      "certificate_authority": {
+        "name": "Let's Encrypt",
+        "type": "public_ca",
+        "validation_level": "domain_validated"
+      },
+      "certificate_transparency": {
+        "logs_count": 2,
+        "first_seen": "2025-04-07T07:40:25Z",
+        "logs": [
+          "google_argon_2025_h2",
+          "google_xenon_2025_h2"
+        ]
+      },
+      "validation": {
+        "trusted_by_major_browsers": false,
+        "validation_paths": {
+          "apple": false,
+          "chrome": false,
+          "microsoft": false,
+          "mozilla": false
+        },
+        "expiry_status": "expired"
+      },
+      "revocation": {
+        "crl_revoked": false,
+        "ocsp_revoked": false
+      },
+      "security_analysis": {
+        "zlint_status": "notices_present",
+        "failed_lints": [
+          "n_subject_common_name_included"
+        ],
+        "risk_level": "medium",
+        "notes": "Certificate has expired"
+      },
+      "usage_indicators": {
+        "ever_seen_in_scan": true,
+        "last_seen": "2025-07-06T19:35:05Z"
+      }
+    },
+    {
+      "fingerprint_sha256": "00004b56524345ba80ed9402a0e611283af4e856755baa8155f638b83226c2a2",
+      "fingerprint_sha1": "af098882f502ace06607b501eaac096e08312282",
+      "fingerprint_md5": "08b5a8b9d9d6a4bdbaaa76dcd4a8b013",
+      "domains": [
+        "postman-shipping.com"
+      ],
+      "subject": {
+        "common_name": "postman-shipping.com",
+        "organization": "Dick's Sporting Goods",
+        "country": null
+      },
+      "issuer": {
+        "common_name": "DigiCert TLS RSA SHA256 2020 CA1",
+        "organization": "DigiCert Inc",
+        "country": "US"
+      },
+      "validity_period": {
+        "not_before": "2025-01-14T21:02:16Z",
+        "not_after": "2026-01-14T21:02:16Z",
+        "length_days": 365,
+        "status": "active"
+      },
+      "key_info": {
+        "algorithm": "RSA",
+        "key_size": 2048,
+        "public_key_fingerprint": "057186c552996750b2ec429706449b0902196cd5601f83b290081a18ebc9c95c"
+      },
+      "certificate_authority": {
+        "name": "DigiCert",
+        "type": "commercial_ca",
+        "validation_level": "organization_validated"
+      },
+      "certificate_transparency": {
+        "logs_count": 0,
+        "first_seen": null,
+        "logs": []
+      },
+      "validation": {
+        "trusted_by_major_browsers": false,
+        "validation_paths": {
+          "apple": false,
+          "chrome": false,
+          "microsoft": false,
+          "mozilla": false
+        },
+        "validation_issues": "Multiple validation errors present"
+      },
+      "security_analysis": {
+        "zlint_status": "errors_present",
+        "failed_lints": [
+          "e_ext_authority_key_identifier_missing",
+          "e_ext_authority_key_identifier_no_key_identifier",
+          "e_ext_san_missing",
+          "e_sub_cert_aia_does_not_contain_ocsp_url",
+          "e_sub_cert_aia_missing",
+          "e_sub_cert_cert_policy_empty",
+          "e_sub_cert_certificate_policies_missing",
+          "e_sub_cert_country_name_must_appear",
+          "e_sub_cert_eku_missing",
+          "e_sub_cert_locality_name_must_appear",
+          "e_sub_cert_province_must_appear",
+          "e_subject_common_name_not_exactly_from_san",
+          "n_subject_common_name_included",
+          "w_ct_sct_policy_count_unsatisfied",
+          "w_ext_subject_key_identifier_missing_sub_cert",
+          "w_sub_cert_aia_does_not_contain_issuing_ca_url"
+        ],
+        "risk_level": "high",
+        "notes": "Multiple critical validation errors - potentially malicious or misconfigured certificate"
+      },
+      "threat_intelligence": {
+        "organization_mismatch": true,
+        "suspicious_patterns": [
+          "Missing Subject Alternative Names",
+          "Missing Certificate Transparency logs",
+          "Missing critical extensions",
+          "Organization validation failures"
+        ]
+      },
+      "usage_indicators": {
+        "ever_seen_in_scan": true,
+        "last_seen": "2025-07-10T06:32:14Z"
+      }
+    }
+  ],
+  "summary": {
+    "certificate_authorities": {
+      "lets_encrypt": 2,
+      "digicert": 1
+    },
+    "validation_levels": {
+      "domain_validated": 2,
+      "organization_validated": 1
+    },
+    "key_algorithms": {
+      "rsa_2048": 2,
+      "rsa_4096": 1
+    },
+    "certificate_status": {
+      "active": 2,
+      "expired": 1
+    },
+    "security_assessment": {
+      "trusted_certificates": 1,
+      "problematic_certificates": 2,
+      "high_risk_certificates": 1
+    }
+  }
+} 

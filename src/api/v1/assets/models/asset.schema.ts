@@ -1,28 +1,32 @@
 import { z } from "zod";
 
-// Core enums (source of truth)
-export const AssetType = z.enum(["web", "host"]);
-export type AssetTypeT = z.infer<typeof AssetType>;
+export const HostAssetSchema = z.object({
+  ip: z.string(), // allows IPv4 & IPv6; change to .ip({ version: "v4" }) if needed
+  location: z.object({}).loose(),            // accept any nested keys
+  autonomous_system: z.object({}).loose(),   // accept any nested keys
+  dns: z.object({}).loose().optional(),
+  operating_system: z.object({}).loose().optional(),
+  services: z.array(z.object({}).loose()).optional(), // array, but skip inner validation
+  threat_intelligence: z.object({}).loose().optional(),
+}).loose(); // keep any additional top-level keys too
+export type HostAsset = z.infer<typeof HostAssetSchema>;
 
-export const AssetStatus = z.enum(["pending", "processing", "ready", "error"]);
-export type AssetStatusT = z.infer<typeof AssetStatus>;
-
-// Sub-schema for files
-export const FileSchema = z.object({
-  name: z.string(),
-  type: z.string(),
-  size: z.number().optional(),
-  content: z.string().optional(), // consider storing externally if large
-});
-export type FileT = z.infer<typeof FileSchema>;
-
-// Domain Asset shape used across service/repo
-export const AssetSchema = z.object({
-  id: z.string(),
-  type: AssetType,
-  status: AssetStatus,
-  files: z.array(FileSchema).default([]),
-  createdAt: z.string(), // ISO string
-  processingResults: z.unknown().optional(),
-});
-export type Asset = z.infer<typeof AssetSchema>;
+export const WebAssetSchema = z
+  .object({
+    fingerprint_sha256: z.string().regex(/^[0-9a-fA-F]{64}$/),
+    fingerprint_sha1: z.string().regex(/^[0-9a-fA-F]{40}$/).optional(),
+    fingerprint_md5: z.string().regex(/^[0-9a-fA-F]{32}$/).optional(),
+    domains: z.array(z.string()).optional(),
+    subject: z.object({}).loose().optional(),
+    issuer: z.object({}).loose().optional(),
+    validity_period: z.object({}).loose().optional(),
+    key_info: z.object({}).loose().optional(),
+    certificate_authority: z.object({}).loose().optional(),
+    certificate_transparency: z.object({}).loose().optional(),
+    validation: z.object({}).loose().optional(),
+    revocation: z.object({}).loose().optional(),
+    security_analysis: z.object({}).loose().optional(),
+    threat_intelligence: z.object({}).loose().optional(),
+    usage_indicators: z.object({}).loose().optional(),
+  }).loose(); // keep any additional top-level keys too
+export type WebAsset = z.infer<typeof WebAssetSchema>;

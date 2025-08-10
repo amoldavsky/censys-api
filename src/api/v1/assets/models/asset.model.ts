@@ -1,30 +1,48 @@
-import mongoose, { Schema, type InferSchemaType, Model } from "mongoose";
+import mongoose, { Schema, Model } from "mongoose";
 
-// Keep file shape aligned with DTO; tighten as needed
-const FileSchema = new Schema(
+//--------- Schemas
+export type _BaseAsset = {
+  _id: string;      // asset id (ip for web assets, domain for host assets)
+  source: string;   // the source of the asset (e.g. "upload", "scan")
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// Web assets collection
+const WebAssetSchema = new Schema<_BaseAsset>(
   {
-    name: { type: String, required: true },
-    type: { type: String, required: true },
-    size: { type: Number },
-    content: { type: String },
+    _id: { type: String, required: true, index: true },
+    source: { type: String, required: true },
   },
-  { _id: false }
-);
-
-const AssetSchema = new Schema(
   {
-    // Use domain id as Mongo _id (string)
-    _id: { type: String, required: true },
-    type: { type: String, required: true, enum: ["web", "host"], index: true },
-    status: { type: String, required: true, enum: ["pending", "processing", "ready", "error"], index: true },
-    files: { type: [FileSchema], default: [] },
-    processingResults: { type: Schema.Types.Mixed },
-  },
-  { versionKey: false, timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" } }
+    versionKey: false,
+    timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },
+  }
 );
+WebAssetSchema.index({ createdAt: -1 });
 
-AssetSchema.index({ createdAt: -1 });
+// Host assets collection
+const HostAssetSchema = new Schema<_BaseAsset>(
+  {
+    _id: { type: String, required: true, index: true },
+    source: { type: String, required: true },
+  },
+  {
+    versionKey: false,
+    timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },
+  }
+);
+HostAssetSchema.index({ createdAt: -1 });
 
-export type AssetDoc = InferSchemaType<typeof AssetSchema> & { _id: string };
-export const AssetModel: Model<AssetDoc> =
-  (mongoose.models.Asset as Model<AssetDoc>) ?? mongoose.model<AssetDoc>("Asset", AssetSchema);
+//--------- Types
+export type WebAssetDoc = _BaseAsset;
+export type HostAssetDoc = _BaseAsset;
+
+//--------- Models
+export const WebAssetModel: Model<WebAssetDoc> =
+  (mongoose.models.WebAsset as Model<WebAssetDoc>) ??
+  mongoose.model<WebAssetDoc>("WebAsset", WebAssetSchema, "web_assets");
+
+export const HostAssetModel: Model<HostAssetDoc> =
+  (mongoose.models.HostAsset as Model<HostAssetDoc>) ??
+  mongoose.model<HostAssetDoc>("HostAsset", HostAssetSchema, "host_assets");

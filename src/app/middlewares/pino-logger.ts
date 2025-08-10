@@ -1,5 +1,5 @@
 import type { Context, Next } from "hono";
-import logger from "@/app/utils/logger";
+import logger from "@/utils/logger";
 
 export async function pinoLogger(c: Context, next: Next) {
   const start = performance.now();

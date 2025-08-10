@@ -1,67 +1,10 @@
 import type { Context } from "hono";
-import { ok, fail } from "../../../utils/response";
-import { CreateAssetRequestDTO } from "./models/asset.dto";
-import { toAssetListResponse, toAssetResponse } from "./assets.mapper";
-import * as svc from "./assets.service";
+import { ok, fail } from "@/utils/response";
+import { toAssetListResponse, toAssetResponse } from "@/api/v1/assets/assets.mapper";
+import * as svc from "@/api/v1/assets/assets.service";
+import { normalizeIp, normalizeDomain, extractArray } from "@/utils/utils";
+import {type HostAsset, HostAssetSchema, type WebAsset, WebAssetSchema} from "@/api/v1/assets/models/asset.schema.ts";
 
-/**
- * @swagger
- * /api/v1/assets:
- *   get:
- *     summary: List assets
- *     tags: [Assets]
- *     responses:
- *       200: { description: List of assets }
- */
-export async function listAssets(c: Context) {
-  const items = await svc.getAssets();
-  return ok(c, toAssetListResponse(items));
-}
-
-/**
- * @swagger
- * /api/v1/assets/{id}:
- *   get:
- *     summary: Get asset by id
- *     tags: [Assets]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema: { type: string }
- *     responses:
- *       200: { description: Asset }
- *       404: { description: Not found }
- */
-export async function getAssetById(c: Context) {
-  const id = c.req.param("id");
-  const asset = await svc.getAssetById(id);
-  if (!asset) return fail(c, "Asset not found", 404);
-  return ok(c, toAssetResponse(asset));
-}
-
-/**
- * @swagger
- * /api/v1/assets:
- *   post:
- *     summary: Create asset
- *     tags: [Assets]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema: { $ref: '#/components/schemas/CreateAssetRequestDTO' }
- *     responses:
- *       201: { description: Created }
- *       412: { description: Malformed request }
- */
-export async function createAsset(c: Context) {
-  const body = await c.req.json();
-  const parsed = CreateAssetRequestDTO.safeParse(body);
-  if (!parsed.success) return fail(c, "Malformed request", 412, parsed.error.flatten());
-  const created = await svc.createAssetFromFiles(parsed.data.files);
-  return ok(c, toAssetResponse(created), 201);
-}
 
 /**
  * @swagger
@@ -77,6 +20,20 @@ export async function listWebAssets(c: Context) {
 
 /**
  * @swagger
+ * /api/v1/assets/web/{id}:
+ *   get:
+ *     summary: Get a web asset by id
+ *     tags: [Assets]
+ */
+export async function getWebAssetById(c: Context) {
+  const id = c.req.param("id");
+  const asset = await svc.getWebAssetById(id);
+  if (!asset) return fail(c, "Asset not found", 404);
+  return ok(c, toAssetResponse(asset));
+}
+
+/**
+ * @swagger
  * /api/v1/assets/hosts:
  *   get:
  *     summary: List host assets
@@ -85,4 +42,122 @@ export async function listWebAssets(c: Context) {
 export async function listHostAssets(c: Context) {
   const items = await svc.getHostAssets();
   return ok(c, toAssetListResponse(items));
+}
+
+/**
+ * @swagger
+ * /api/v1/assets/hosts/{id}:
+ *   get:
+ *     summary: Get a host asset by id
+ *     tags: [Assets]
+ */
+export async function getHostAssetById(c: Context) {
+  const id = c.req.param("id");
+  const asset = await svc.getHostAssetById(id);
+  if (!asset) return fail(c, "Asset not found", 404);
+  return ok(c, toAssetResponse(asset));
+}
+
+/**
+ * @swagger
+ * /api/v1/assets/web/upload:
+ *   post:
+ *     summary: Upload JSON (object with array or bare array) of web assets (overwrite existing only)
+ *     tags: [Assets]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: JSON with an array field (e.g. `hosts`) or a bare array of items with `ip`
+ *     responses:
+ *       200: { description: Overwrote existing web assets; non-existing are ignored }
+ *       415: { description: Only JSON file is accepted }
+ *       412: { description: Malformed JSON or no array found }
+ */
+export async function uploadWebAssets(c: Context) {
+  const ct = c.req.header("content-type") || "";
+  if (!ct.startsWith("multipart/form-data")) return fail(c, "Only multipart/form-data is accepted for file uploads", 415);
+
+  const form = await c.req.formData();
+  const file = form.get("file");
+  if (!(file instanceof File)) return fail(c, "Missing file", 412);
+  if (file.type && file.type !== "application/json") return fail(c, "Only JSON file is accepted", 415);
+
+  let payload: any;
+  try {
+    payload = JSON.parse(await file.text());
+  } catch {
+    return fail(c, "Malformed JSON file", 412);
+  }
+
+  const assetsRaw = payload.certificates;
+  if (!assetsRaw) return fail(c, "Expected a JSON array (bare array) or an object containing an array (e.g. `hosts`)", 412);
+
+  try {
+    const assets: WebAsset[] = assetsRaw.map ((r: any) => {
+      return WebAssetSchema.parse(r)
+    });
+    const assetsStored = await svc.insertWebAssets(assets); // overwrite existing only
+    return ok(c, toAssetListResponse(assetsStored), 200);
+  } catch (err) {
+    return fail(c, "Failed to save web assets", 500);
+  }
+}
+
+/**
+ * @swagger
+ * /api/v1/assets/hosts/upload:
+ *   post:
+ *     summary: Upload JSON (object with array or bare array) of host assets (overwrite existing only)
+ *     tags: [Assets]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: JSON with an array field (e.g. `domains`) or a bare array of items with `domain`
+ *     responses:
+ *       200: { description: Overwrote existing host assets; non-existing are ignored }
+ *       415: { description: Only JSON file is accepted }
+ *       412: { description: Malformed JSON or no array found }
+ */
+export async function uploadHostAssets(c: Context) {
+  const ct = c.req.header("content-type") || "";
+  if (!ct.startsWith("multipart/form-data")) return fail(c, "Only multipart/form-data is accepted for file uploads", 415);
+
+  const form = await c.req.formData();
+  const file = form.get("file");
+  if (!(file instanceof File)) return fail(c, "Missing file", 412);
+  if (file.type && file.type !== "application/json") return fail(c, "Only JSON file is accepted", 415);
+
+  let payload: any;
+  try {
+    payload = JSON.parse(await file.text());
+  } catch {
+    return fail(c, "Malformed JSON file", 412);
+  }
+
+  const assetsRaw = payload.hosts;
+  if (!assetsRaw) return fail(c, "Data malformed", 412);
+
+  try {
+    const assets: HostAsset[] = assetsRaw.map ((r: any) => {
+      return HostAssetSchema.parse(r)
+    });
+    const assetsStored = await svc.insertHostAssets(assets);
+    return ok(c, toAssetListResponse(assetsStored), 200);
+  } catch (err) {
+    return fail(c, "Failed to save host assets", 500);
+  }
 }

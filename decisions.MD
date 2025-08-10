@@ -22,3 +22,4 @@ for storing the uploaded files and once parsed not really needed for anything. W
 simpler to upload them to a temp bucket with TTL outside of the api. If this was a production grade
 service these would be S3 pre-signed URLs but for this POC Byesclase gives us an easy and quick solution.
 
+# Not keeping asset history (asset updated over time)

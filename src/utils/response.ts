@@ -1,24 +1,15 @@
 import type { Context } from "hono";
-// @ts-ignore
-import type {ContentfulStatusCode} from "hono/dist/types/utils/http-status";
+import type { StatusCode } from "hono/utils/http-status";
 
-export type SuccessEnvelope<T> = {
-  success: true;
-  data: T;
-};
+export type SuccessEnvelope<T> = { success: true; data: T };
+export type ErrorEnvelope = { success: false; error: string; details?: unknown };
 
-export type ErrorEnvelope = {
-  success: false;
-  error: string;
-  details?: unknown;
-};
-
-export function ok<T>(c: Context, data: T, status = 200) {
+export function ok<T>(c: Context, data: T, status: StatusCode = 200 as StatusCode) {
   const body: SuccessEnvelope<T> = { success: true, data };
-  return c.json(body, status as ContentfulStatusCode);
+  return c.json(body, status);
 }
 
-export function fail(c: Context, message: string, status = 500, details?: unknown) {
+export function fail(c: Context, message: string, status: StatusCode = 500 as StatusCode, details?: unknown) {
   const body: ErrorEnvelope = { success: false, error: message, details };
-  return c.json(body, status as ContentfulStatusCode);
+  return c.json(body, status);
 }

@@ -1,14 +1,12 @@
-import type { Asset } from "./models/asset.schema";
-import type { AssetResponseDTO, ListAssetsResponseDTO } from "./models/asset.dto";
+import type { Asset } from "@/api/v1/assets/models/asset.schema";
+import type { AssetResponseDTO, ListAssetsResponseDTO } from "@/api/v1/assets/models/asset.dto";
 
 export function toAssetResponse(a: Asset): AssetResponseDTO {
   return {
     id: a.id,
-    type: a.type,
-    status: a.status,
-    files: a.files,
+    source: a.source,
     createdAt: a.createdAt,
-    processingResults: a.processingResults,
+    updatedAt: a.updatedAt,
   };
 }
 

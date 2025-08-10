@@ -67,10 +67,17 @@ export function isConnected(): boolean {
  */
 export async function ping({ timeoutMs = 2_000 }: { timeoutMs?: number } = {}) {
   if (!isConnected()) {
-    await connect({ serverSelectionTimeoutMS: Math.max(5_000, timeoutMs) });
+    return Promise.reject(new Error("not connected"));
   }
-  const call = mongoose.connection.db.admin().command({ ping: 1 });
-  await withTimeout(call, timeoutMs, "mongo ping timeout");
+  if (!mongoose.connection || !mongoose.connection.db) {
+    return Promise.resolve();
+  }
+  try {
+    const call = mongoose.connection.db.admin().command({ping: 1});
+    return withTimeout(call, timeoutMs, "mongo ping timeout");
+  } catch (err) {
+    return Promise.reject(err);
+  }
 }
 
 // Helpers

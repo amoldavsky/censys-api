@@ -1,22 +1,18 @@
 import { Hono } from "hono";
-import { jsonOnlyMiddleware } from "../../../app/middlewares/json-only";
-import { registerErrorHandling } from "../../../app/middlewares/error-handler";
-import * as controller from "./assets.controller.ts";
+import { jsonOnlyMiddleware } from "@/app/middlewares/json-only";
+import { registerErrorHandling } from "@/app/middlewares/error-handler";
+import * as ctrl from "./assets.controller";
 
 export const routes = new Hono().basePath("/assets");
-
-// Global error handler
 registerErrorHandling(routes);
-
-// Global middleware
 routes.use("*", jsonOnlyMiddleware);
 
-// Assets
-routes.get("/", controller.listAssets);
-routes.post("/", controller.createAsset);
+// Map paths → controllers
+routes.get("/web", ctrl.listWebAssets);
+routes.get("/web/:id", ctrl.getWebAssetById);
+routes.get("/hosts", ctrl.listHostAssets);
+routes.get("/hosts/:id", ctrl.getHostAssetById);
 
-routes.get("/web", controller.listWebAssets);
-routes.get("/web/:id", controller.getWebAssetById);
-
-routes.get("/hosts", controller.listHostAssets);
-routes.get("/hosts/:id", controller.getHostAssetById);
+// New JSON file upload endpoints
+routes.post("/web/upload", ctrl.uploadWebAssets);
+routes.post("/hosts/upload", ctrl.uploadHostAssets);

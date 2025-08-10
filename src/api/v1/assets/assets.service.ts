@@ -1,33 +1,50 @@
-import { randomUUID } from "crypto";
-import * as store from "./assets.store";
-import type { Asset, AssetTypeT } from "./models/asset.schema";
+import * as store from "@/api/v1/assets/assets.store";
+import {
+  type HostAsset,
+  HostAssetSchema,
+  type WebAsset,
+  WebAssetSchema
+} from "@/api/v1/assets/models/asset.schema";
+import type {WebAssetDoc} from "@/api/v1/assets/models/asset.model.ts";
 
-export async function getAssets(): Promise<Asset[]> {
-  return store.listAssets();
+
+export async function getWebAssets(): Promise<WebAsset[]> {
+  return (await store.listWebAssets()).map((a: any) => {
+    return WebAssetSchema.parse(a);
+  });
 }
 
-export async function getAssetById(id: string): Promise<Asset | null> {
-  return store.getAssetById(id);
+export async function getHostAssets(): Promise<HostAsset[]> {
+  return (await store.listHostAssets()).map((a: any) => {
+    return HostAssetSchema.parse(a);
+  });
 }
 
-export async function getWebAssets(): Promise<Asset[]> {
-  return store.findAssetsByType("web" as AssetTypeT);
+export async function getWebAssetById(id: string): Promise<WebAsset | null> {
+  const assetStored = store.getWebAssetById(id);
+  return WebAssetSchema.parse(assetStored);
 }
 
-export async function getHostAssets(): Promise<Asset[]> {
-  return store.findAssetsByType("host" as AssetTypeT);
+export async function getHostAssetById(id: string): Promise<HostAsset | null> {
+  const assetStored = await store.getHostAssetById(id);
+  return HostAssetSchema.parse(assetStored);
 }
 
-export async function createAssetFromFiles(files: Asset["files"]): Promise<Asset> {
-  const now = new Date().toISOString();
-  const asset: Asset = {
-    id: randomUUID(),
-    type: "web" as AssetTypeT, // or decide based on files; simple default for POC
-    status: "pending",
-    files,
-    createdAt: now,
-  } as Asset;
+// Bulk insert (overwrite) web assets
+export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
+  await store.insertWebAssets(assets);
+  const assetsStored = await Promise.all(assets.map(i => {
+    const assetDoc = store.getWebAssetById(i.fingerprint_sha256);
+    return WebAssetSchema.parse(assetDoc);
+  }));
+  return assetsStored;
+}
 
-  await store.upsertAsset(asset);
-  return asset;
+export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]> {
+  await store.insertHostAssets(assets);
+  const assetsStored = await Promise.all(assets.map(i => {
+    const assetDoc = store.getHostAssetById(i.ip);
+    return HostAssetSchema.parse(assetDoc);
+  }));
+  return assetsStored;
 }

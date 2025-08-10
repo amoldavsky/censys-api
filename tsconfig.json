@@ -11,7 +11,8 @@
     // Path aliases
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@/app/*": ["./src/app/*"]
     },
 
     // Bundler mode (Bun)
@@ -37,5 +38,7 @@
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
   },
-  "include": ["src", "tests", "index.ts"]
+  "include": ["src", "tests",
+    "src/app/index.ts"
+  ]
 }

@@ -3,3 +3,6 @@ preload = ["./tests/setup.ts"]
 
 tsconfig = "tsconfig.json"
 
+[alias]
+"@/": "./src/"
+

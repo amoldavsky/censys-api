@@ -1,5 +1,6 @@
 import type { Context } from "hono";
-import { ok, fail } from "../../utils/response";
+import { ok, fail } from "@/utils/response";
+import { ping as dbPing } from "@/db/mongoose";
 
 /**
  * @swagger
@@ -12,16 +13,11 @@ import { ok, fail } from "../../utils/response";
  *         description: Service health information
  */
 export async function health(c: Context) {
-  const data = await getServiceHealth();
-  return ok(c, data);
+  // TODO: implement db + service check
+  return ok(c, {});
 }
 
 export async function ready(c: Context) {
-  const dbPing = async () => {
-      const isHealthy = await databaseService.healthCheck();
-      if (!isHealthy) throw new Error("Database health check failed");
-      return isHealthy;
-    };
     try {
       await dbPing();
       return ok(c, { status: 'ready' });
