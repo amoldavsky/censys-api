@@ -10,6 +10,9 @@ import { routes as opsRoutes } from "../api/ops/ops.routes.ts";
 // Initialize Hono app
 const app = new Hono();
 
+// Initialize database connection
+await mongoose.connect();
+
 // Initialize logger
 // const appLogger = createLogger("censys-api");
 
