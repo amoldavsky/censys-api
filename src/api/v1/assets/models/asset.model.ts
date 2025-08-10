@@ -11,7 +11,7 @@ export type _BaseAsset = {
 // Web assets collection
 const WebAssetSchema = new Schema<_BaseAsset>(
   {
-    _id: { type: String, required: true, index: true },
+    _id: { type: String, required: true },
     source: { type: String, required: true },
   },
   {
@@ -24,7 +24,7 @@ WebAssetSchema.index({ createdAt: -1 });
 // Host assets collection
 const HostAssetSchema = new Schema<_BaseAsset>(
   {
-    _id: { type: String, required: true, index: true },
+    _id: { type: String, required: true },
     source: { type: String, required: true },
   },
   {
