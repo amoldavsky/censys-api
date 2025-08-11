@@ -17,22 +17,14 @@ export async function getWebAssetSummary(assetId: string): Promise<WebAssetSumma
   if (!doc) return null;
 
   // Transform MongoDB document to domain model
-  const summary: WebAssetSummary = {
-    id: doc._id,
-    summary: doc.summary,
-    severity: doc.severity,
-    evidence: doc.evidence,
-    evidence_extras: doc.evidence_extras,
-    findings: doc.findings,
-    recommendations: doc.recommendations,
-    assumptions: doc.assumptions,
-    data_coverage: doc.data_coverage,
-    created_at: doc.createdAt.toISOString(),
+  const summary = {
+    ...doc, // Include all fields from document
+    id: doc._id, // Map _id to id
+    created_at: doc.createdAt.toISOString(), // Convert dates to ISO strings
     updated_at: doc.updatedAt.toISOString(),
-    ...doc // Include any additional fields
   };
 
-  // Validate against schema
+  // Validate against schema and return
   return WebAssetSummarySchema.parse(summary);
 }
 
@@ -52,21 +44,13 @@ export async function saveWebAssetSummary(summary: WebAssetSummary): Promise<voi
  */
 export async function listWebAssetSummaries(): Promise<WebAssetSummary[]> {
   const docs = await store.listWebAssetSummaries();
-  
+
   return docs.map(doc => {
-    const summary: WebAssetSummary = {
-      id: doc._id,
-      summary: doc.summary,
-      severity: doc.severity,
-      evidence: doc.evidence,
-      evidence_extras: doc.evidence_extras,
-      findings: doc.findings,
-      recommendations: doc.recommendations,
-      assumptions: doc.assumptions,
-      data_coverage: doc.data_coverage,
-      created_at: doc.createdAt.toISOString(),
+    const summary = {
+      ...doc, // Include all fields from document
+      id: doc._id, // Map _id to id
+      created_at: doc.createdAt.toISOString(), // Convert dates to ISO strings
       updated_at: doc.updatedAt.toISOString(),
-      ...doc // Include any additional fields
     };
 
     return WebAssetSummarySchema.parse(summary);
@@ -83,22 +67,14 @@ export async function getHostAssetSummary(assetId: string): Promise<HostAssetSum
   if (!doc) return null;
 
   // Transform MongoDB document to domain model
-  const summary: HostAssetSummary = {
-    id: doc._id,
-    summary: doc.summary,
-    severity: doc.severity,
-    evidence: doc.evidence,
-    evidence_extras: doc.evidence_extras,
-    findings: doc.findings,
-    recommendations: doc.recommendations,
-    assumptions: doc.assumptions,
-    data_coverage: doc.data_coverage,
-    created_at: doc.createdAt.toISOString(),
+  const summary = {
+    ...doc, // Include all fields from document
+    id: doc._id, // Map _id to id
+    created_at: doc.createdAt.toISOString(), // Convert dates to ISO strings
     updated_at: doc.updatedAt.toISOString(),
-    ...doc // Include any additional fields
   };
 
-  // Validate against schema
+  // Validate against schema and return
   return HostAssetSummarySchema.parse(summary);
 }
 
@@ -118,21 +94,13 @@ export async function saveHostAssetSummary(summary: HostAssetSummary): Promise<v
  */
 export async function listHostAssetSummaries(): Promise<HostAssetSummary[]> {
   const docs = await store.listHostAssetSummaries();
-  
+
   return docs.map(doc => {
-    const summary: HostAssetSummary = {
-      id: doc._id,
-      summary: doc.summary,
-      severity: doc.severity,
-      evidence: doc.evidence,
-      evidence_extras: doc.evidence_extras,
-      findings: doc.findings,
-      recommendations: doc.recommendations,
-      assumptions: doc.assumptions,
-      data_coverage: doc.data_coverage,
-      created_at: doc.createdAt.toISOString(),
+    const summary = {
+      ...doc, // Include all fields from document
+      id: doc._id, // Map _id to id
+      created_at: doc.createdAt.toISOString(), // Convert dates to ISO strings
       updated_at: doc.updatedAt.toISOString(),
-      ...doc // Include any additional fields
     };
 
     return HostAssetSummarySchema.parse(summary);

@@ -6,7 +6,12 @@ import {
   toHostAssetListResponse,
   toHostAssetResponse
 } from "@/api/v1/assets/assets.mapper";
+import {
+  toWebAssetSummaryResponse,
+  toHostAssetSummaryResponse
+} from "@/api/v1/assets/asset-summary.mapper";
 import * as svc from "@/api/v1/assets/assets.service";
+import * as summarySvc from "@/api/v1/assets/asset-summary.service";
 import {type HostAsset, HostAssetSchema, type WebAsset, WebAssetSchema} from "@/api/v1/assets/models/asset.schema.ts";
 import * as jobsService from "@/app/services/jobs";
 import * as summaryAgent from "@/app/services/summary.agent";
@@ -38,7 +43,7 @@ export async function listWebAssets(c: Context) {
 export async function getWebAssetById(c: Context) {
   const id = c.req.param("id");
   const asset = await svc.getWebAssetById(id);
-  if (!asset) return fail(c, "Asset not found", 404);
+  if (!asset) return fail(c, "not found", 404);
   return ok(c, toWebAssetResponse(asset));
 }
 
@@ -64,7 +69,7 @@ export async function listHostAssets(c: Context) {
 export async function getHostAssetById(c: Context) {
   const id = c.req.param("id");
   const asset = await svc.getHostAssetById(id);
-  if (!asset) return fail(c, "Asset not found", 404);
+  if (!asset) return fail(c, "not found", 404);
   return ok(c, toHostAssetResponse(asset));
 }
 
@@ -215,4 +220,32 @@ export async function uploadHostAssets(c: Context) {
   } catch (err) {
     return fail(c, "Failed to save host assets", 500);
   }
+}
+
+/**
+ * @swagger
+ * /api/v1/assets/web/{id}/summary:
+ *   get:
+ *     summary: Get a web asset summary by id
+ *     tags: [Assets]
+ */
+export async function getWebAssetSummary(c: Context) {
+  const id = c.req.param("id");
+  const summary = await summarySvc.getWebAssetSummary(id);
+  if (!summary) return fail(c, "not found", 404);
+  return ok(c, toWebAssetSummaryResponse(summary));
+}
+
+/**
+ * @swagger
+ * /api/v1/assets/hosts/{id}/summary:
+ *   get:
+ *     summary: Get a host asset summary by id
+ *     tags: [Assets]
+ */
+export async function getHostAssetSummary(c: Context) {
+  const id = c.req.param("id");
+  const summary = await summarySvc.getHostAssetSummary(id);
+  if (!summary) return fail(c, "not found", 404);
+  return ok(c, toHostAssetSummaryResponse(summary));
 }

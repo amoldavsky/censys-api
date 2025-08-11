@@ -9,8 +9,10 @@ registerErrorHandling(routes);
 // Map paths → controllers
 routes.get("/web", jsonOnlyMiddleware, ctrl.listWebAssets);
 routes.get("/web/:id", jsonOnlyMiddleware, ctrl.getWebAssetById);
+routes.get("/web/:id/summary", jsonOnlyMiddleware, ctrl.getWebAssetSummary);
 routes.get("/hosts", jsonOnlyMiddleware, ctrl.listHostAssets);
 routes.get("/hosts/:id", jsonOnlyMiddleware, ctrl.getHostAssetById);
+routes.get("/hosts/:id/summary", jsonOnlyMiddleware, ctrl.getHostAssetSummary);
 
 // Upload endpoints (no jsonOnlyMiddleware - they handle their own validation)
 routes.post("/web/upload", ctrl.uploadWebAssets);

@@ -238,6 +238,8 @@ http://localhost:3000/api/v1
 | GET | `/assets/hosts` | Get host assets only |
 | GET | `/assets/hosts/:id` | Get specific host asset by ID |
 | GET | `/assets/web/:id` | Get specific web asset by ID |
+| GET | `/assets/web/:id/summary` | Get web asset security summary |
+| GET | `/assets/hosts/:id/summary` | Get host asset security summary |
 
 #### Health & Monitoring
 
@@ -369,6 +371,26 @@ The API automatically detects and classifies uploaded JSON files into two asset 
   - Port numbers and services
   - Operating system information (when available)
 - **Example Content**: Server configurations, network topology files, infrastructure inventories
+
+### Asset Security Summaries
+
+The API provides AI-generated security summaries for both web and host assets. These summaries analyze the asset data and provide:
+
+#### Summary Schema
+- **id**: Asset identifier (domain for web assets, IP for host assets)
+- **summary**: 2-4 sentence terse, specific, evidence-based summary
+- **severity**: Risk level (low, medium, high, critical)
+- **evidence**: Structured data including certificate info, security indicators
+- **findings**: 1-5 short bullets citing specific data points
+- **recommendations**: ≤4 prioritized, actionable security recommendations
+- **assumptions**: Notes about missing/ambiguous fields that were inferred
+- **data_coverage**: Percentage of fields present and list of missing fields
+
+#### Summary Generation
+- Summaries are automatically generated via background jobs when assets are uploaded
+- Access summaries via `/api/v1/assets/web/:id/summary` or `/api/v1/assets/hosts/:id/summary`
+- Returns 404 if no summary exists for the asset
+- Summaries are stored separately in `web_asset_summaries` and `host_asset_summaries` collections
 
 ### File Upload Specifications
 
