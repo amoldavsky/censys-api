@@ -12,6 +12,7 @@ import {
 } from "@/api/v1/assets/asset-summary.mapper";
 import * as svc from "@/api/v1/assets/assets.service";
 import * as summarySvc from "@/api/v1/assets/asset-summary.service";
+import { jobs, type Job } from "@/app/services/jobs";
 import {type HostAsset, HostAssetSchema, type WebAsset, WebAssetSchema} from "@/api/v1/assets/models/asset.schema.ts";
 import * as jobsService from "@/app/services/jobs";
 import * as summaryAgent from "@/app/services/summary.agent";
@@ -237,9 +238,23 @@ export async function uploadHostAssets(c: Context) {
  */
 export async function getWebAssetSummary(c: Context) {
   const id = c.req.param("id");
+
+  // Check if summary exists
   const summary = await summarySvc.getWebAssetSummary(id);
-  if (!summary) return fail(c, "not found", 404);
-  return ok(c, toWebAssetSummaryResponse(summary));
+  if (summary) {
+    // Add status field to indicate completion - added because we do not have a proper jobs queue system with persisted tracking
+    const summaryWithStatus = { ...summary, status: "complete" as const };
+    return ok(c, toWebAssetSummaryResponse(summaryWithStatus));
+  }
+
+  // Check if there's an active summary generation job
+  const activeJob = findActiveSummaryJob(id, 'web');
+  if (activeJob) {
+    return ok(c, { status: activeJob.status });
+  }
+
+  // No summary and no active job
+  return fail(c, "not found", 404);
 }
 
 /**
@@ -251,7 +266,39 @@ export async function getWebAssetSummary(c: Context) {
  */
 export async function getHostAssetSummary(c: Context) {
   const id = c.req.param("id");
+
+  // Check if summary exists
   const summary = await summarySvc.getHostAssetSummary(id);
-  if (!summary) return fail(c, "not found", 404);
-  return ok(c, toHostAssetSummaryResponse(summary));
+  if (summary) {
+    // Add status field to indicate completion - added because we do not have a proper jobs queue system with persisted tracking
+    const summaryWithStatus = { ...summary, status: "complete" as const };
+    return ok(c, toHostAssetSummaryResponse(summaryWithStatus));
+  }
+
+  // Check if there's an active summary generation job
+  const activeJob = findActiveSummaryJob(id, 'host');
+  if (activeJob) {
+    return ok(c, { status: activeJob.status });
+  }
+
+  // No summary and no active job
+  return fail(c, "not found", 404);
+}
+
+// --- Helper Functions ---
+
+/**
+ * Find active summary job for a specific asset
+ * Located in controller layer since it's used for response logic
+ */
+function findActiveSummaryJob(assetId: string, assetType: 'web' | 'host'): Job | null {
+  for (const job of jobs.values()) {
+    if (job.type === 'asset-summary' &&
+        (job.status === 'pending' || job.status === 'processing') &&
+        job.payload?.asset?.id === assetId &&
+        job.payload?.assetType === assetType) {
+      return job;
+    }
+  }
+  return null;
 }

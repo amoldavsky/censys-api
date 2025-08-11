@@ -26,7 +26,7 @@ const queue = new PQueue({
   timeout: 300000, // 5 minutes
 });
 
-const jobs = new Map<string, Job>();
+export const jobs = new Map<string, Job>();
 const handlers = new Map<string, JobHandler>();
 let jobCounter = 0;
 

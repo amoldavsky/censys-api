@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { routes } from "@/api/v1/assets/assets.routes";
 import type { WebAssetSummary, HostAssetSummary } from "@/api/v1/assets/models/asset-summary.schema";
 import * as summarySvc from "@/api/v1/assets/asset-summary.service";
+
 import "../../../integration-setup"; // Import integration test setup
 
 describe("Asset Summary API", () => {
@@ -20,7 +21,7 @@ describe("Asset Summary API", () => {
       
       const data = await response.json();
       expect(data.success).toBe(false);
-      expect(data.error).toBe("Asset summary not found");
+      expect(data.error).toBe("not found");
     });
 
     it("should return summary when it exists", async () => {
@@ -67,6 +68,8 @@ describe("Asset Summary API", () => {
       expect(data.data.summary).toBe("Test web asset summary");
       expect(data.data.severity).toBe("low");
       expect(data.data.evidence.domain).toBe("test.com");
+      // Status field should be added by controller for existing summaries
+      expect(data.data.status).toBe("complete");
     });
   });
 
@@ -77,7 +80,7 @@ describe("Asset Summary API", () => {
       
       const data = await response.json();
       expect(data.success).toBe(false);
-      expect(data.error).toBe("Asset summary not found");
+      expect(data.error).toBe("not found");
     });
 
     it("should return summary when it exists", async () => {
@@ -124,6 +127,10 @@ describe("Asset Summary API", () => {
       expect(data.data.summary).toBe("Test host asset summary");
       expect(data.data.severity).toBe("medium");
       expect(data.data.evidence.waf_or_cdn_hint).toBe("None");
+      // Status field should be added by controller for existing summaries
+      expect(data.data.status).toBe("complete");
     });
   });
+
+
 });
