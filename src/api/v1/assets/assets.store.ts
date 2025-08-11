@@ -47,15 +47,18 @@ export async function insertWebAssets(assets: (WebAsset & { id: string })[]): Pr
   }, "Bulk write operation completed");
 }
 
-export async function insertHostAssets(assets: HostAsset[]): Promise<void> {
+export async function insertHostAssets(assets: (HostAsset & { id: string })[]): Promise<void> {
   await ensureConnected();
   if (!assets.length) return;
-  await HostAssetModel.bulkWrite(
+
+  logger.debug({ assetCount: assets.length }, "Processing host assets for bulk write");
+
+  const result = await HostAssetModel.bulkWrite(
     assets.map(a => ({
       replaceOne: {
-        filter: { _id: a.ip },
+        filter: { _id: a.id },
         replacement: {
-          _id: a.ip,
+          _id: a.id,
           source: "upload",
           createdAt: new Date(), // Will be ignored if document exists due to timestamps
           updatedAt: new Date(),
@@ -66,6 +69,12 @@ export async function insertHostAssets(assets: HostAsset[]): Promise<void> {
     })),
     { ordered: false }
   );
+
+  logger.info({
+    matchedCount: result.matchedCount,
+    modifiedCount: result.modifiedCount,
+    upsertedCount: result.upsertedCount
+  }, "Host assets bulk write operation completed");
 }
 
 // --- Reads ---

@@ -85,11 +85,24 @@ export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
 }
 
 export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]> {
-  await store.insertHostAssets(assets);
-  const assetsStored = await Promise.all(assets.map(async i => {
-    const assetDoc = await store.getHostAssetById(i.ip);
-    const parsed = HostAssetSchema.parse(assetDoc);
-    return { ...parsed, id: assetDoc?._id || i.ip };
+  if (!assets.length) return [];
+
+  // Ensure all assets have an id field (use ip as id if not provided)
+  const assetsWithIds = assets.map(asset => ({
+    ...asset,
+    id: asset.id || asset.ip
   }));
+
+  logger.info({ assetCount: assetsWithIds.length }, "Attempting to insert/update host assets");
+  await store.insertHostAssets(assetsWithIds);
+  logger.info("Bulk write operation completed");
+
+  // Return the assets with source: "upload" added
+  const assetsStored = assetsWithIds.map(asset => ({
+    ...asset,
+    source: "upload" as const
+  }));
+
+  logger.info({ processedCount: assetsStored.length }, "Successfully processed host assets");
   return assetsStored;
 }
