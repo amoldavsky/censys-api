@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import { ok, fail } from "@/utils/response";
 import { ping as dbPing } from "@/db/mongoose";
+import * as jobsService from "@/app/services/jobs";
 
 /**
  * @swagger
@@ -35,4 +36,9 @@ export async function info(c: Context) {
       runtime: 'Bun',
       nodeVersion: process.version,
     });
+}
+
+export async function jobsStatus(c: Context) {
+  const stats = jobsService.getQueueStats();
+  return ok(c, stats);
 }

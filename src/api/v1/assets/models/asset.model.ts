@@ -17,6 +17,7 @@ const WebAssetSchema = new Schema<_BaseAsset>(
   {
     versionKey: false,
     timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },
+    strict: false,  // Allow additional fields not defined in schema
   }
 );
 WebAssetSchema.index({ createdAt: -1 });
@@ -30,6 +31,7 @@ const HostAssetSchema = new Schema<_BaseAsset>(
   {
     versionKey: false,
     timestamps: { createdAt: "createdAt", updatedAt: "updatedAt" },
+    strict: false,  // Allow additional fields not defined in schema
   }
 );
 HostAssetSchema.index({ createdAt: -1 });

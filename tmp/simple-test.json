@@ -1,0 +1,8 @@
+{
+  "certificates": [
+    {
+      "fingerprint_sha256": "00004387f2594630d0e24abb7adffeb9582e9fd12e1b2332a196764bcd9cb6ea",
+      "domains": ["example.com"]
+    }
+  ]
+}

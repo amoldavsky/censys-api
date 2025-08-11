@@ -1,6 +1,7 @@
 import * as db from "@/db/mongoose";
 import {WebAssetModel, HostAssetModel, type WebAssetDoc, type HostAssetDoc} from "@/api/v1/assets/models/asset.model";
 import type {HostAsset, WebAsset} from "@/api/v1/assets/models/asset.schema";
+import logger from "@/utils/logger";
 
 async function ensureConnected() {
   if (!db.isConnected()) await db.connect();
@@ -16,20 +17,34 @@ export async function overwriteWebAsset(asset: { id: string; source: string }): 
   ).exec();
 }
 
-export async function insertWebAssets(assets: WebAsset[]): Promise<void> {
+export async function insertWebAssets(assets: (WebAsset & { id: string })[]): Promise<void> {
   await ensureConnected();
   if (!assets.length) return;
 
-  await WebAssetModel.bulkWrite(
+  logger.debug({ assetCount: assets.length }, "Processing assets for bulk write");
+
+  const result = await WebAssetModel.bulkWrite(
     assets.map(a => ({
-      updateOne: {
-        filter: { _id: a.fingerprint_sha256 },
-        update: { $set: { source: a.source }, $currentDate: { updatedAt: true } },
-        upsert: false,
+      replaceOne: {
+        filter: { _id: a.id },
+        replacement: {
+          _id: a.id,
+          source: "upload",
+          createdAt: new Date(), // Will be ignored if document exists due to timestamps
+          updatedAt: new Date(),
+          ...a  // Spread all the uploaded asset data - this overwrites everything
+        },
+        upsert: true,
       },
     })),
     { ordered: false }
   );
+
+  logger.info({
+    matchedCount: result.matchedCount,
+    modifiedCount: result.modifiedCount,
+    upsertedCount: result.upsertedCount
+  }, "Bulk write operation completed");
 }
 
 export async function insertHostAssets(assets: HostAsset[]): Promise<void> {
@@ -37,10 +52,16 @@ export async function insertHostAssets(assets: HostAsset[]): Promise<void> {
   if (!assets.length) return;
   await HostAssetModel.bulkWrite(
     assets.map(a => ({
-      updateOne: {
-        filter: { _id: a.id },
-        update: { $set: { source: a.source }, $currentDate: { updatedAt: true } },
-        upsert: false,
+      replaceOne: {
+        filter: { _id: a.ip },
+        replacement: {
+          _id: a.ip,
+          source: "upload",
+          createdAt: new Date(), // Will be ignored if document exists due to timestamps
+          updatedAt: new Date(),
+          ...a  // Spread all the uploaded asset data - this overwrites everything
+        },
+        upsert: true,
       },
     })),
     { ordered: false }

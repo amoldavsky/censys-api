@@ -5,14 +5,13 @@ import * as ctrl from "./assets.controller";
 
 export const routes = new Hono().basePath("/assets");
 registerErrorHandling(routes);
-routes.use("*", jsonOnlyMiddleware);
 
 // Map paths → controllers
-routes.get("/web", ctrl.listWebAssets);
-routes.get("/web/:id", ctrl.getWebAssetById);
-routes.get("/hosts", ctrl.listHostAssets);
-routes.get("/hosts/:id", ctrl.getHostAssetById);
+routes.get("/web", jsonOnlyMiddleware, ctrl.listWebAssets);
+routes.get("/web/:id", jsonOnlyMiddleware, ctrl.getWebAssetById);
+routes.get("/hosts", jsonOnlyMiddleware, ctrl.listHostAssets);
+routes.get("/hosts/:id", jsonOnlyMiddleware, ctrl.getHostAssetById);
 
-// New JSON file upload endpoints
+// Upload endpoints (no jsonOnlyMiddleware - they handle their own validation)
 routes.post("/web/upload", ctrl.uploadWebAssets);
 routes.post("/hosts/upload", ctrl.uploadHostAssets);

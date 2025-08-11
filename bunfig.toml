@@ -1,6 +1,5 @@
 [test]
-preload = ["./tests/setup.ts"]
-
+# No global preload - tests import setup as needed
 tsconfig = "tsconfig.json"
 
 [alias]

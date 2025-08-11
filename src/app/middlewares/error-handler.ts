@@ -1,5 +1,6 @@
 import type { Context } from "hono";
 import { fail } from "../../utils/response";
+import logger from "@/utils/logger";
 
 /**
  * Registers a global error handler via Hono's onError hook.
@@ -8,7 +9,7 @@ import { fail } from "../../utils/response";
 export function registerErrorHandling<T>(app: { onError: (fn: (err: Error, c: Context) => Response | Promise<Response>) => void }) {
   app.onError((err, c) => {
     // Central place to log/annotate errors (Datadog, Sentry, etc.)
-    console.error("Unhandled error:", err);
+    logger.error({ err, path: c.req.path, method: c.req.method }, "Unhandled error");
     return fail(c, "Internal server error", 500);
   });
 }

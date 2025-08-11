@@ -11,3 +11,6 @@ routes.get('/ready', controller.ready);
 
 routes.get('/info', controller.info);
 
+// Jobs queue status
+routes.get('/jobs', controller.jobsStatus);
+

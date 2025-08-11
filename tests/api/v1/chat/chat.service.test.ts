@@ -1,0 +1,126 @@
+import { describe, it, expect } from "bun:test";
+import { processChat } from "@/api/v1/chat/chat.service";
+import type { ChatRequest } from "@/api/v1/chat/models/chat.schema";
+
+describe("Chat Service", () => {
+
+  describe("processChat", () => {
+    it("should process basic chat request without asset data", async () => {
+      const request: ChatRequest = {
+        messages: [
+          { role: "user", content: "Hello, what can you help me with?" }
+        ]
+      };
+
+      const response = await processChat(request);
+
+      expect(response.message).toBeDefined();
+      expect(response.message.role).toBe("assistant");
+      expect(response.message.content).toBeDefined();
+      expect(typeof response.message.content).toBe("string");
+      expect(response.message.content.length).toBeGreaterThan(0);
+    });
+
+    it("should process chat request with web assets", async () => {
+      const request: ChatRequest = {
+        messages: [
+          { role: "user", content: "Can you analyze my web assets?" }
+        ],
+        asset_data: {
+          web_assets: [
+            {
+              fingerprint_sha256: "abc123def456",
+              domains: ["example.com", "www.example.com"],
+              certificate_authority: { name: "Let's Encrypt" }
+            }
+          ]
+        }
+      };
+
+      const response = await processChat(request);
+
+      expect(response.message).toBeDefined();
+      expect(response.message.role).toBe("assistant");
+      expect(response.message.content).toBeDefined();
+    });
+
+    it("should process chat request with host assets", async () => {
+      const request: ChatRequest = {
+        messages: [
+          { role: "user", content: "What can you tell me about my host assets?" }
+        ],
+        asset_data: {
+          host_assets: [
+            {
+              ip: "192.168.1.1",
+              location: { country: "US" },
+              autonomous_system: { name: "Example AS" },
+              services: [{ port: 80, service: "http" }]
+            }
+          ]
+        }
+      };
+
+      const response = await processChat(request);
+
+      expect(response.message).toBeDefined();
+      expect(response.message.role).toBe("assistant");
+      expect(response.message.content).toBeDefined();
+    });
+
+    it("should handle conversation history", async () => {
+      const request: ChatRequest = {
+        messages: [
+          { role: "user", content: "What are cybersecurity assets?" },
+          { role: "assistant", content: "Cybersecurity assets are digital resources..." },
+          { role: "user", content: "Can you be more specific about web assets?" }
+        ]
+      };
+
+      const response = await processChat(request);
+
+      expect(response.message).toBeDefined();
+      expect(response.message.role).toBe("assistant");
+      expect(response.message.content).toBeDefined();
+    });
+
+    it("should include usage information when available", async () => {
+      const request: ChatRequest = {
+        messages: [
+          { role: "user", content: "Hello" }
+        ]
+      };
+
+      const response = await processChat(request);
+
+      expect(response.message).toBeDefined();
+      // Usage might be undefined if not provided by the model
+      if (response.usage) {
+        expect(typeof response.usage.prompt_tokens).toBe("number");
+        expect(typeof response.usage.completion_tokens).toBe("number");
+        expect(typeof response.usage.total_tokens).toBe("number");
+      }
+    });
+
+    it("should handle API key errors gracefully", async () => {
+      // This test assumes no valid API key is set
+      const originalKey = process.env.OPENAI_API_KEY;
+      process.env.OPENAI_API_KEY = "invalid-key";
+
+      const request: ChatRequest = {
+        messages: [
+          { role: "user", content: "Hello" }
+        ]
+      };
+
+      const response = await processChat(request);
+
+      expect(response.message).toBeDefined();
+      expect(response.message.role).toBe("assistant");
+      expect(response.message.content).toContain("experiencing high demand");
+
+      // Restore original key
+      process.env.OPENAI_API_KEY = originalKey;
+    });
+  });
+});

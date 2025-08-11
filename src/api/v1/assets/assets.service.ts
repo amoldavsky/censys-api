@@ -6,45 +6,90 @@ import {
   WebAssetSchema
 } from "@/api/v1/assets/models/asset.schema";
 import type {WebAssetDoc} from "@/api/v1/assets/models/asset.model.ts";
+import logger from "@/utils/logger";
 
 
 export async function getWebAssets(): Promise<WebAsset[]> {
   return (await store.listWebAssets()).map((a: any) => {
-    return WebAssetSchema.parse(a);
+    const parsed = WebAssetSchema.parse(a);
+    return { ...parsed, id: a._id };
   });
 }
 
 export async function getHostAssets(): Promise<HostAsset[]> {
   return (await store.listHostAssets()).map((a: any) => {
-    return HostAssetSchema.parse(a);
+    const parsed = HostAssetSchema.parse(a);
+    return { ...parsed, id: a._id };
   });
 }
 
 export async function getWebAssetById(id: string): Promise<WebAsset | null> {
-  const assetStored = store.getWebAssetById(id);
-  return WebAssetSchema.parse(assetStored);
+  const assetStored = await store.getWebAssetById(id);
+  if (!assetStored) return null;
+
+  // Use safeParse to handle extra fields gracefully
+  const parseResult = WebAssetSchema.safeParse(assetStored);
+  if (!parseResult.success) {
+    logger.error({ assetId: id, error: parseResult.error }, "Schema validation failed for web asset");
+    // Return null if validation fails to maintain type safety
+    return null;
+  }
+  return { ...parseResult.data, id: assetStored._id };
 }
 
 export async function getHostAssetById(id: string): Promise<HostAsset | null> {
   const assetStored = await store.getHostAssetById(id);
-  return HostAssetSchema.parse(assetStored);
+  if (!assetStored) return null;
+
+  // Use safeParse to handle extra fields gracefully
+  const parseResult = HostAssetSchema.safeParse(assetStored);
+  if (!parseResult.success) {
+    logger.error({ assetId: id, error: parseResult.error }, "Schema validation failed for host asset");
+    // Return null if validation fails to maintain type safety
+    return null;
+  }
+  return { ...parseResult.data, id: assetStored._id };
 }
 
 // Bulk insert (overwrite) web assets
 export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
-  await store.insertWebAssets(assets);
-  const assetsStored = await Promise.all(assets.map(i => {
-    const assetDoc = store.getWebAssetById(i.fingerprint_sha256);
-    return WebAssetSchema.parse(assetDoc);
+  if (!assets.length) return [];
+
+  // Validate that all assets have domains and get shortest domain as ID
+  const assetsWithIds = assets.map(asset => {
+    if (!asset.domains || asset.domains.length === 0) {
+      throw new Error("Web asset must have at least one domain");
+    }
+    // pick the shortest domain as ID
+    const shortestDomain = asset.domains.reduce((shortest, current) =>
+      current.length < shortest.length ? current : shortest
+    );
+    return {
+      ...asset,
+      id: shortestDomain
+    };
+  });
+
+  logger.info({ assetCount: assetsWithIds.length }, "Attempting to insert/update web assets");
+  await store.insertWebAssets(assetsWithIds);
+  logger.info("Bulk write operation completed");
+
+  // Return the assets with source: "upload" added
+  const assetsStored = assetsWithIds.map(asset => ({
+    ...asset,
+    source: "upload" as const
   }));
+
+  logger.info({ processedCount: assetsStored.length }, "Successfully processed web assets");
   return assetsStored;
 }
 
 export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]> {
   await store.insertHostAssets(assets);
-  const assetsStored = await Promise.all(assets.map(i => {
-    const assetDoc = store.getHostAssetById(i.ip);
-    return HostAssetSchema.parse(assetDoc);
+  const assetsStored = await Promise.all(assets.map(async i => {
+    const assetDoc = await store.getHostAssetById(i.ip);
+    const parsed = HostAssetSchema.parse(assetDoc);
+    return { ...parsed, id: assetDoc?._id || i.ip };
   }));
   return assetsStored;
 }
