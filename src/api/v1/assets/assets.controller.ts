@@ -124,6 +124,12 @@ export async function uploadWebAssets(c: Context) {
 
     const assets: WebAsset[] = assetsRaw.map ((r: any, index: number) => {
       try {
+        // Generate ID from domains if not provided
+        if (!r.id && r.domains && r.domains.length > 0) {
+          r.id = r.domains.reduce((shortest: string, current: string) =>
+            current.length < shortest.length ? current : shortest
+          );
+        }
         return WebAssetSchema.parse(r);
       } catch (parseErr) {
         logger.error({ index, parseErr }, "Schema validation failed for web asset");

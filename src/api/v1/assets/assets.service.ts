@@ -55,19 +55,12 @@ export async function getHostAssetById(id: string): Promise<HostAsset | null> {
 export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
   if (!assets.length) return [];
 
-  // Validate that all assets have domains and get shortest domain as ID
+  // Validate that all assets have IDs (should be set by controller)
   const assetsWithIds = assets.map(asset => {
-    if (!asset.domains || asset.domains.length === 0) {
-      throw new Error("Web asset must have at least one domain");
+    if (!asset.id) {
+      throw new Error("Web asset must have an id field");
     }
-    // pick the shortest domain as ID
-    const shortestDomain = asset.domains.reduce((shortest, current) =>
-      current.length < shortest.length ? current : shortest
-    );
-    return {
-      ...asset,
-      id: shortestDomain
-    };
+    return asset;
   });
 
   logger.info({ assetCount: assetsWithIds.length }, "Attempting to insert/update web assets");

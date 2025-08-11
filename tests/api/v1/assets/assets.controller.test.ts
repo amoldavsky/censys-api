@@ -20,8 +20,8 @@ describe("uploadWebAssets Controller", () => {
     mockInsertWebAssets.mockClear();
   });
 
-  const createMockFile = (content: string, type = "application/json") => {
-    return new File([content], "test.json", { type });
+  const createMockFile = (content: string, type = "application/json", filename = "test.json") => {
+    return new File([content], filename, { type });
   };
 
   const createFormData = (file: File) => {
@@ -85,7 +85,7 @@ describe("uploadWebAssets Controller", () => {
     });
 
     it("should reject non-JSON files", async () => {
-      const file = createMockFile("not json", "text/plain");
+      const file = createMockFile("not json", "text/plain", "test.txt");
       const formData = createFormData(file);
 
       const req = new Request("http://localhost/upload", {
@@ -183,7 +183,7 @@ describe("uploadWebAssets Controller", () => {
       expect(res.status).toBe(200);
       expect(body.success).toBe(true);
       expect(body.data.items).toHaveLength(1);
-      expect(mockInsertWebAssets).toHaveBeenCalledWith([validAsset]);
+      expect(mockInsertWebAssets).toHaveBeenCalledWith([{ ...validAsset, id: "example.com" }]);
     });
 
     it("should process real web dataset", async () => {
@@ -203,7 +203,14 @@ describe("uploadWebAssets Controller", () => {
       expect(res.status).toBe(200);
       expect(body.success).toBe(true);
       expect(body.data.items).toHaveLength(webDataset.certificates.length);
-      expect(mockInsertWebAssets).toHaveBeenCalledWith(webDataset.certificates);
+      // Expect assets with generated IDs (shortest domain)
+      const expectedAssets = webDataset.certificates.map(cert => ({
+        ...cert,
+        id: cert.domains.reduce((shortest, current) =>
+          current.length < shortest.length ? current : shortest
+        )
+      }));
+      expect(mockInsertWebAssets).toHaveBeenCalledWith(expectedAssets);
     });
   });
 
@@ -262,7 +269,12 @@ describe("uploadWebAssets Controller", () => {
       expect(res.status).toBe(200);
       expect(body.success).toBe(true);
       expect(body.data.items).toHaveLength(2);
-      expect(mockInsertWebAssets).toHaveBeenCalledWith(validAssets);
+      // Expect assets with generated IDs
+      const expectedAssets = validAssets.map(asset => ({
+        ...asset,
+        id: asset.domains[0] // Single domain, so it becomes the ID
+      }));
+      expect(mockInsertWebAssets).toHaveBeenCalledWith(expectedAssets);
     });
 
     it("should validate real dataset structure", async () => {

@@ -53,7 +53,6 @@ type GraphState = typeof GraphStateAnnotation.State;
 const llm = new ChatOpenAI({
   model: "gpt-5-mini",
   apiKey: process.env.OPENAI_API_KEY,
-  temperature: 0,
   maxRetries: 0, // Graph handles retries
   timeout: 30000,
 });

@@ -14,7 +14,7 @@ export type HostAsset = z.infer<typeof HostAssetSchema>;
 
 export const WebAssetSchema = z
   .object({
-    id: z.string(), // asset identifier (shortest domain)
+    id: z.string().optional(), // asset identifier (shortest domain) - generated from domains if not provided
     fingerprint_sha256: z.string().regex(/^[0-9a-fA-F]{64}$/),
     fingerprint_sha1: z.string().regex(/^[0-9a-fA-F]{40}$/).optional(),
     fingerprint_md5: z.string().regex(/^[0-9a-fA-F]{32}$/).optional(),
