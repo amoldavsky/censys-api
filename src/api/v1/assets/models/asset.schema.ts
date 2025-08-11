@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const HostAssetSchema = z.object({
+  id: z.string(), // asset identifier
   ip: z.string(), // allows IPv4 & IPv6; change to .ip({ version: "v4" }) if needed
   location: z.object({}).loose(),            // accept any nested keys
   autonomous_system: z.object({}).loose(),   // accept any nested keys
@@ -13,6 +14,7 @@ export type HostAsset = z.infer<typeof HostAssetSchema>;
 
 export const WebAssetSchema = z
   .object({
+    id: z.string(), // asset identifier (shortest domain)
     fingerprint_sha256: z.string().regex(/^[0-9a-fA-F]{64}$/),
     fingerprint_sha1: z.string().regex(/^[0-9a-fA-F]{40}$/).optional(),
     fingerprint_md5: z.string().regex(/^[0-9a-fA-F]{32}$/).optional(),
