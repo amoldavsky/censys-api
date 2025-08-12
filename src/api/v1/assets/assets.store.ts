@@ -24,19 +24,23 @@ export async function insertWebAssets(assets: (WebAsset & { id: string })[]): Pr
   logger.debug({ assetCount: assets.length }, "Processing assets for bulk write");
 
   const result = await WebAssetModel.bulkWrite(
-    assets.map(a => ({
-      replaceOne: {
-        filter: { _id: a.id },
-        replacement: {
-          _id: a.id,
-          source: "upload",
-          createdAt: new Date(), // Will be ignored if document exists due to timestamps
-          updatedAt: new Date(),
-          ...a  // Spread all the uploaded asset data - this overwrites everything
+    assets.map(a => {
+      // Exclude the id field from the spread to avoid conflicts with _id
+      const { id, ...assetData } = a;
+      return {
+        replaceOne: {
+          filter: { _id: id },
+          replacement: {
+            _id: id,
+            source: "upload",
+            createdAt: new Date(), // Will be ignored if document exists due to timestamps
+            updatedAt: new Date(),
+            ...assetData  // Spread all the uploaded asset data except id
+          },
+          upsert: true,
         },
-        upsert: true,
-      },
-    })),
+      };
+    }),
     { ordered: false }
   );
 
@@ -54,19 +58,23 @@ export async function insertHostAssets(assets: (HostAsset & { id: string })[]): 
   logger.debug({ assetCount: assets.length }, "Processing host assets for bulk write");
 
   const result = await HostAssetModel.bulkWrite(
-    assets.map(a => ({
-      replaceOne: {
-        filter: { _id: a.id },
-        replacement: {
-          _id: a.id,
-          source: "upload",
-          createdAt: new Date(), // Will be ignored if document exists due to timestamps
-          updatedAt: new Date(),
-          ...a  // Spread all the uploaded asset data - this overwrites everything
+    assets.map(a => {
+      // Exclude the id field from the spread to avoid conflicts with _id
+      const { id, ...assetData } = a;
+      return {
+        replaceOne: {
+          filter: { _id: id },
+          replacement: {
+            _id: id,
+            source: "upload",
+            createdAt: new Date(), // Will be ignored if document exists due to timestamps
+            updatedAt: new Date(),
+            ...assetData  // Spread all the uploaded asset data except id
+          },
+          upsert: true,
         },
-        upsert: true,
-      },
-    })),
+      };
+    }),
     { ordered: false }
   );
 

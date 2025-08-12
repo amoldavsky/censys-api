@@ -206,12 +206,34 @@ export async function uploadHostAssets(c: Context) {
   }
 
   const assetsRaw = payload.hosts;
-  if (!assetsRaw) return fail(c, "Data malformed", 412);
+  if (!assetsRaw) {
+    logger.error({ payload: Object.keys(payload) }, "Expected 'hosts' array in payload");
+    return fail(c, "Expected a JSON object containing a 'hosts' array", 412);
+  }
+
+  if (!Array.isArray(assetsRaw)) {
+    logger.error({ assetsRawType: typeof assetsRaw }, "Expected 'hosts' to be an array");
+    return fail(c, "Expected 'hosts' to be an array", 412);
+  }
 
   try {
-    const assets: HostAsset[] = assetsRaw.map ((r: any) => {
-      return HostAssetSchema.parse(r)
+    logger.info({ hostCount: assetsRaw.length }, "Processing host assets");
+
+    const assets: HostAsset[] = assetsRaw.map((r: any, index: number) => {
+      try {
+        // Ensure ID is set before validation (use ip as fallback if id is missing)
+        if (!r.id && r.ip) {
+          r.id = r.ip;
+        } else if (!r.id && !r.ip) {
+          throw new Error(`Host asset at index ${index} must have either 'id' or 'ip' field`);
+        }
+        return HostAssetSchema.parse(r);
+      } catch (parseErr) {
+        logger.error({ index, parseErr, asset: r }, "Schema validation failed for host asset");
+        throw parseErr;
+      }
     });
+
     const assetsStored = await svc.insertHostAssets(assets);
 
     // Queue summary generation jobs for each uploaded asset
@@ -225,6 +247,7 @@ export async function uploadHostAssets(c: Context) {
 
     return ok(c, toHostAssetListResponse(assetsStored), 200);
   } catch (err) {
+    logger.error({ error: err }, "Host assets upload error");
     return fail(c, "Failed to save host assets", 500);
   }
 }
@@ -281,8 +304,27 @@ export async function getHostAssetSummary(c: Context) {
     return ok(c, { status: activeJob.status });
   }
 
-  // No summary and no active job
-  return fail(c, "not found", 404);
+  // Check if there's a failed job that could be retried
+  const failedJob = findFailedSummaryJob(id, 'host');
+  if (failedJob) {
+    return ok(c, {
+      status: "failed",
+      message: "Summary generation failed. This may be due to API quota limits.",
+      canRetry: true
+    });
+  }
+
+  // No summary and no job found - asset might not exist
+  const asset = await svc.getHostAssetById(id);
+  if (!asset) {
+    return fail(c, "Asset not found", 404);
+  }
+
+  // Asset exists but no summary job was created
+  return ok(c, {
+    status: "not_started",
+    message: "Summary generation has not been initiated for this asset"
+  });
 }
 
 // --- Helper Functions ---
@@ -295,6 +337,36 @@ function findActiveSummaryJob(assetId: string, assetType: 'web' | 'host'): Job |
   for (const job of jobs.values()) {
     if (job.type === 'asset-summary' &&
         (job.status === 'pending' || job.status === 'processing') &&
+        job.payload?.asset?.id === assetId &&
+        job.payload?.assetType === assetType) {
+      return job;
+    }
+  }
+  return null;
+}
+
+/**
+ * Find failed summary job for a specific asset
+ */
+function findFailedSummaryJob(assetId: string, assetType: 'web' | 'host'): Job | null {
+  for (const job of jobs.values()) {
+    if (job.type === 'asset-summary' &&
+        job.status === 'failed' &&
+        job.payload?.asset?.id === assetId &&
+        job.payload?.assetType === assetType) {
+      return job;
+    }
+  }
+  return null;
+}
+
+/**
+ * Find failed summary job for a specific asset
+ */
+function findFailedSummaryJob(assetId: string, assetType: 'web' | 'host'): Job | null {
+  for (const job of jobs.values()) {
+    if (job.type === 'asset-summary' &&
+        job.status === 'failed' &&
         job.payload?.asset?.id === assetId &&
         job.payload?.assetType === assetType) {
       return job;

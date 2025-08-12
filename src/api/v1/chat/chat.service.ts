@@ -4,6 +4,8 @@ import type { ChatRequest, ChatResponse, Message } from "./models/chat.schema";
 import {instructions as instructionTpl} from "./chat.service.prompt";
 import Mustache from "mustache";
 import logger from "@/utils/logger";
+import * as assetService from "@/api/v1/assets/assets.service";
+import * as summaryStore from "@/api/v1/assets/asset-summary.store";
 
 // Initialize LLM instance once
 const llm = new ChatOpenAI({
@@ -19,11 +21,47 @@ export async function processChat(request: ChatRequest): Promise<ChatResponse> {
   try {
     // Debug logging
     logger.debug({ request }, "Chat service received request");
-    logger.debug({ assetData: request.assetData }, "Asset data for chat context");
 
-    // Build system message with asset context using template literals
-    const systemMessage = buildSystemMessage(request.assetData);
-    // console.log("System message:", systemMessage);
+    // Fetch asset data if assetId is provided
+    let assetData = null;
+    if (request.assetId && request.assetType) {
+      logger.debug({ assetId: request.assetId, assetType: request.assetType }, "Attempting to fetch asset data");
+      try {
+        if (request.assetType === "web") {
+          assetData = await assetService.getWebAssetById(request.assetId);
+        } else if (request.assetType === "host") {
+          assetData = await assetService.getHostAssetById(request.assetId);
+        }
+        logger.debug({ assetData: assetData ? 'Found' : 'Not found', assetId: request.assetId }, "Fetched asset data");
+      } catch (error) {
+        logger.error({ error, assetId: request.assetId }, "Failed to fetch asset data");
+      }
+    } else {
+      logger.debug("No assetId or assetType provided, skipping asset fetch");
+    }
+
+    // Fetch summary data if summaryId is provided
+    let summaryData = null;
+    if (request.summaryId) {
+      logger.debug({ summaryId: request.summaryId }, "Attempting to fetch summary data");
+      try {
+        // Try both web and host summary stores since summaryId should be unique
+        summaryData = await summaryStore.getWebAssetSummaryById(request.summaryId);
+        if (!summaryData) {
+          summaryData = await summaryStore.getHostAssetSummaryById(request.summaryId);
+        }
+        logger.debug({ summaryData: summaryData ? 'Found' : 'Not found', summaryId: request.summaryId }, "Fetched summary data");
+      } catch (error) {
+        logger.error({ error, summaryId: request.summaryId }, "Failed to fetch summary data");
+      }
+    } else {
+      logger.debug("No summaryId provided, skipping summary fetch");
+    }
+
+    // Build system message with asset context
+    const systemMessage = buildSystemMessage(assetData, summaryData);
+    logger.debug({ systemMessage }, "Generated system message");
+    logger.debug({ hasAssetData: !!assetData, hasSummaryData: !!summaryData }, "Context data availability");
 
     // Transform input messages to LangChain format (filtering out system messages)
     const inputMessages = transformInputMessages(request.messages);
@@ -64,11 +102,25 @@ export async function processChat(request: ChatRequest): Promise<ChatResponse> {
 /**
  * Build system message with asset context
  */
-function buildSystemMessage(assetData: string, summaryData?: string): string {
-    if (!assetData) {
+function buildSystemMessage(assetData?: any, summaryData?: any): string {
+    if (!assetData && !summaryData) {
       return "You are a cybersecurity AI assistant. Help users analyze and understand their security assets.";
     }
-    const instructions = Mustache.render(instructionTpl, { assetData, summaryData });
+
+    // Convert asset data to string format for template
+    const templateData: any = {};
+
+    if (assetData) {
+      templateData.assetData = JSON.stringify(assetData, null, 2);
+    }
+
+    if (summaryData) {
+      templateData.summaryData = JSON.stringify(summaryData, null, 2);
+    }
+
+    logger.debug({ templateDataKeys: Object.keys(templateData) }, "Template data keys");
+
+    const instructions = Mustache.render(instructionTpl, templateData);
     return instructions;
   }
 

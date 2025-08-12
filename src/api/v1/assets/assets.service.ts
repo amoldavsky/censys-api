@@ -18,8 +18,24 @@ export async function getWebAssets(): Promise<WebAsset[]> {
 
 export async function getHostAssets(): Promise<HostAsset[]> {
   return (await store.listHostAssets()).map((a: any) => {
-    const parsed = HostAssetSchema.parse(a);
-    return { ...parsed, id: a._id };
+    // Ensure id field exists before parsing (use _id as fallback for existing records)
+    if (!a.id) {
+      a.id = a._id;
+    }
+
+    // Use safeParse to handle any schema issues gracefully
+    const parseResult = HostAssetSchema.safeParse(a);
+    if (!parseResult.success) {
+      logger.error({ assetId: a._id, error: parseResult.error }, "Schema validation failed for host asset during listing");
+      // Return a minimal valid object to prevent the entire list from failing
+      return {
+        id: a._id,
+        ip: a.ip || a._id,
+        location: {},
+        autonomous_system: {},
+      };
+    }
+    return { ...parseResult.data, id: a._id };
   });
 }
 
@@ -40,6 +56,11 @@ export async function getWebAssetById(id: string): Promise<WebAsset | null> {
 export async function getHostAssetById(id: string): Promise<HostAsset | null> {
   const assetStored = await store.getHostAssetById(id);
   if (!assetStored) return null;
+
+  // Ensure id field exists before parsing (use _id as fallback for existing records)
+  if (!assetStored.id) {
+    assetStored.id = assetStored._id;
+  }
 
   // Use safeParse to handle extra fields gracefully
   const parseResult = HostAssetSchema.safeParse(assetStored);
@@ -80,11 +101,13 @@ export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
 export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]> {
   if (!assets.length) return [];
 
-  // Ensure all assets have an id field (use ip as id if not provided)
-  const assetsWithIds = assets.map(asset => ({
-    ...asset,
-    id: asset.id || asset.ip
-  }));
+  // Validate that all assets have IDs (should be set by controller)
+  const assetsWithIds = assets.map(asset => {
+    if (!asset.id) {
+      throw new Error("Host asset must have an id field");
+    }
+    return asset;
+  });
 
   logger.info({ assetCount: assetsWithIds.length }, "Attempting to insert/update host assets");
   await store.insertHostAssets(assetsWithIds);

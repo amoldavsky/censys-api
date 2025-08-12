@@ -51,7 +51,7 @@ const GraphStateAnnotation = Annotation.Root({
 type GraphState = typeof GraphStateAnnotation.State;
 
 const llm = new ChatOpenAI({
-  model: "gpt-5-mini",
+  model: "gpt-4o-mini",
   apiKey: process.env.OPENAI_API_KEY,
   maxRetries: 0, // Graph handles retries
   timeout: 30000,

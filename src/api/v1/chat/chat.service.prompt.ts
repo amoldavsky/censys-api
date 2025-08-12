@@ -9,12 +9,13 @@ Your task is to help the user with question about digital assets and security su
 - If unsure say you are unsure
 - Validate your response and reasoning before answering
 
+{{#assetData}}
 ASSET_DATA:
-{{assetDataStr}}
+{{assetData}}
+{{/assetData}}
 
-{{#assetSummary}}
-
+{{#summaryData}}
 SUMMARY_DATA:
-{{assetSummary}}
-{{/assetSummary}}
+{{summaryData}}
+{{/summaryData}}
 `;

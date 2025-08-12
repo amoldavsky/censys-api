@@ -1,4 +1,4 @@
-import {string, z} from "zod";
+import { z } from "zod";
 
 // Message schema for chat conversation
 export const MessageSchema = z.object({
@@ -10,7 +10,9 @@ export type Message = z.infer<typeof MessageSchema>;
 // Chat request schema
 export const ChatRequestSchema = z.object({
   messages: z.array(MessageSchema).min(1, "At least one message is required"),
-  assetData: z.any(),
+  assetId: z.string().optional(),
+  assetType: z.enum(["web", "host"]).optional(),
+  summaryId: z.string().optional(),
 });
 export type ChatRequest = z.infer<typeof ChatRequestSchema>;
 

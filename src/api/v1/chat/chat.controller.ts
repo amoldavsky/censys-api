@@ -28,17 +28,16 @@ import logger from "@/utils/logger";
  *                       enum: [user, assistant]
  *                     content:
  *                       type: string
- *               asset_data:
- *                 type: object
- *                 properties:
- *                   web_assets:
- *                     type: array
- *                     items:
- *                       type: object
- *                   host_assets:
- *                     type: array
- *                     items:
- *                       type: object
+ *               asset_id:
+ *                 type: string
+ *                 description: ID of the asset to provide context for
+ *               asset_type:
+ *                 type: string
+ *                 enum: [web, host]
+ *                 description: Type of the asset
+ *               summary_id:
+ *                 type: string
+ *                 description: ID of the asset summary to provide context for
  *     responses:
  *       200:
  *         description: Chat response
