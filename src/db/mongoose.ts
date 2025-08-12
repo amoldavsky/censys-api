@@ -19,7 +19,7 @@ export async function connect(opts: ConnectOpts = {}) {
   }
 
   const {
-    uri = process.env.MONGO_URL || "mongodb://localhost:27017/app",
+    uri = process.env.MONGODB_URL || process.env.MONGO_URL || "mongodb://localhost:27017/app",
     serverSelectionTimeoutMS = 10_000,
     socketTimeoutMS = 30_000,
     maxPoolSize = 10,

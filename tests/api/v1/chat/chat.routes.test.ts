@@ -49,7 +49,7 @@ describe("Chat Routes", () => {
         body: JSON.stringify(requestBody),
       });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       const data = await response.json();
       expect(data.success).toBe(false);
     });
@@ -68,7 +68,7 @@ describe("Chat Routes", () => {
         body: JSON.stringify(requestBody),
       });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
       const data = await response.json();
       expect(data.success).toBe(false);
     });

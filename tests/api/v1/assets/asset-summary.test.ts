@@ -80,7 +80,7 @@ describe("Asset Summary API", () => {
       
       const data = await response.json();
       expect(data.success).toBe(false);
-      expect(data.error).toBe("not found");
+      expect(data.error).toBe("Asset not found");
     });
 
     it("should return summary when it exists", async () => {

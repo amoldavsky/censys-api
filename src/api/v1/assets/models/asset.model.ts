@@ -2,7 +2,9 @@ import mongoose, { Schema, Model } from "mongoose";
 
 //--------- Schemas
 export type _BaseAsset = {
-  _id: string;      // asset id (ip for web assets, domain for host assets)
+  _id: string;      // asset id
+  // Web assets: id = shortest domain from the `domains` list
+  // Host assets: id = IP address
   source: string;   // the source of the asset (e.g. "upload", "scan")
   createdAt: Date;
   updatedAt: Date;

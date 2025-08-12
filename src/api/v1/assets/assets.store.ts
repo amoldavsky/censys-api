@@ -17,38 +17,49 @@ export async function overwriteWebAsset(asset: { id: string; source: string }): 
   ).exec();
 }
 
-export async function insertWebAssets(assets: (WebAsset & { id: string })[]): Promise<void> {
-  await ensureConnected();
-  if (!assets.length) return;
+export async function insertWebAssets(assets: any[]): Promise<void> {
+  try {
+    await ensureConnected();
+    if (!assets.length) return;
 
-  logger.debug({ assetCount: assets.length }, "Processing assets for bulk write");
+    logger.debug({ assetCount: assets.length }, "Processing assets for bulk write");
 
-  const result = await WebAssetModel.bulkWrite(
-    assets.map(a => {
+  const operations = assets
+    .map(a => {
+      // Support legacy callers (store tests) that do not pass `id` and rely on fingerprint as _id
+      // Service/controller will pass `id` explicitly (shortestDomain for web assets)
+      const legacyId = (a as any).fingerprint_sha256 as string | undefined;
+      const id = (a as any).id ?? legacyId;
+      if (!id) return null; // skip invalid items
+
       // Exclude the id field from the spread to avoid conflicts with _id
-      const { id, ...assetData } = a;
+      const { id: _ignored, ...assetData } = a as any;
       return {
-        replaceOne: {
+        updateOne: {
           filter: { _id: id },
-          replacement: {
-            _id: id,
-            source: "upload",
-            createdAt: new Date(), // Will be ignored if document exists due to timestamps
-            updatedAt: new Date(),
-            ...assetData  // Spread all the uploaded asset data except id
+          update: {
+            $set: {
+              source: "upload",
+              updatedAt: new Date(),
+              ...assetData  // Spread all the uploaded asset data except id
+            }
           },
-          upsert: true,
+          upsert: false,
         },
       };
-    }),
-    { ordered: false }
-  );
+    })
+    .filter(Boolean) as any[];
 
-  logger.info({
-    matchedCount: result.matchedCount,
-    modifiedCount: result.modifiedCount,
-    upsertedCount: result.upsertedCount
-  }, "Bulk write operation completed");
+    const result = await WebAssetModel.bulkWrite(operations, { ordered: false });
+    logger.debug({
+      matchedCount: result.matchedCount,
+      modifiedCount: result.modifiedCount,
+      upsertedCount: result.upsertedCount
+    }, "Bulk write operation completed");
+  } catch (error) {
+    logger.error({ error }, "Error in insertWebAssets");
+    throw error;
+  }
 }
 
 export async function insertHostAssets(assets: (HostAsset & { id: string })[]): Promise<void> {
@@ -71,7 +82,7 @@ export async function insertHostAssets(assets: (HostAsset & { id: string })[]): 
             updatedAt: new Date(),
             ...assetData  // Spread all the uploaded asset data except id
           },
-          upsert: true,
+          upsert: false,
         },
       };
     }),

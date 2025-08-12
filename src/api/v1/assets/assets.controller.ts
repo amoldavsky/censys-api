@@ -13,7 +13,7 @@ import {
 import * as svc from "@/api/v1/assets/assets.service";
 import * as summarySvc from "@/api/v1/assets/asset-summary.service";
 import { jobs, type Job } from "@/app/services/jobs";
-import {type HostAsset, HostAssetSchema, type WebAsset, WebAssetSchema} from "@/api/v1/assets/models/asset.schema.ts";
+import {type HostAsset, HostAssetSchema, type WebAsset, WebAssetSchema} from "@/api/v1/assets/models/asset.schema";
 import * as jobsService from "@/app/services/jobs";
 import * as summaryAgent from "@/app/services/summary.agent";
 import logger from "@/utils/logger";
@@ -401,21 +401,6 @@ function findActiveSummaryJob(assetId: string, assetType: 'web' | 'host'): Job |
   for (const job of jobs.values()) {
     if (job.type === 'asset-summary' &&
         (job.status === 'pending' || job.status === 'processing') &&
-        job.payload?.asset?.id === assetId &&
-        job.payload?.assetType === assetType) {
-      return job;
-    }
-  }
-  return null;
-}
-
-/**
- * Find failed summary job for a specific asset
- */
-function findFailedSummaryJob(assetId: string, assetType: 'web' | 'host'): Job | null {
-  for (const job of jobs.values()) {
-    if (job.type === 'asset-summary' &&
-        job.status === 'failed' &&
         job.payload?.asset?.id === assetId &&
         job.payload?.assetType === assetType) {
       return job;

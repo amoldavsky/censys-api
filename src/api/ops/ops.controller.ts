@@ -1,21 +1,24 @@
 import type { Context } from "hono";
 import { ok, fail } from "@/utils/response";
-import { ping as dbPing } from "@/db/mongoose";
+import { ping as dbPing, isConnected as dbIsConnected } from "@/db/mongoose";
 import * as jobsService from "@/app/services/jobs";
 
 /**
- * @swagger
- * /api/v1/assets/health:
- *   get:
- *     summary: Get service health status
- *     tags: [Health]
- *     responses:
- *       200:
- *         description: Service health information
+ * Liveness: is the process up?
+ * Exposed at GET /healthz
  */
 export async function health(c: Context) {
-  // TODO: implement db + service check
-  return ok(c, {});
+  const db_connected = dbIsConnected();
+  const queue = jobsService.getQueueStats();
+  const jobs_ok = !queue.isPaused; // minimal signal
+  return ok(c, {
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    uptime_seconds: Math.floor(process.uptime()),
+    db_connected,
+    jobs_ok,
+    queue,
+  });
 }
 
 export async function ready(c: Context) {
@@ -34,7 +37,7 @@ export async function info(c: Context) {
       commit: Bun.env.GIT_SHA ?? 'unknown',
       env: Bun.env.NODE_ENV ?? 'development',
       runtime: 'Bun',
-      nodeVersion: process.version,
+      node_version: process.version,
     });
 }
 

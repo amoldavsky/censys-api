@@ -14,46 +14,51 @@ A modern REST API built with Hono framework for cybersecurity asset management a
 - **Comprehensive Testing**: Unit and integration tests with Bun test runner
 - **Docker Support**: Complete containerized development environment
 
+## POC Overview
+
+See [POC_OVERVIEW.md](POC_OVERVIEW.md) for a high-level overview of the POC.
+
 ## 📁 Project Structure
 
 ```
 censys/
 ├── src/
+│   ├── app/
+│   │   ├── index.ts
+│   │   ├── middlewares/
+│   │   │   ├── json-only.ts
+│   │   │   └── pino-logger.ts
+│   │   └── services/
+│   │       ├── jobs.ts
+│   │       └── summary.agent*.ts
 │   ├── api/
+│   │   ├── ops/
+│   │   │   ├── ops.routes.ts
+│   │   │   └── ops.controller.ts
 │   │   └── v1/
-│   │       └── assets/
-│   │           ├── assets.routes.ts           # Asset API endpoints
-│   │           ├── assets.service.ts          # Business logic & processing
-│   │           ├── assets.store.ts            # MongoDB persistence layer
-│   │           ├── model/
-│   │           │   ├── asset.model.ts         # Domain models (Asset, WebAsset, HostAsset)
-│   │           │   └── asset.schema.ts        # Zod validation schemas
-│   │           ├── dto/
-│   │           │   └── asset.dto.ts           # API data transfer objects
-│   │           ├── mappers/
-│   │           │   └── assets.mapper.ts        # Data transformation utilities
-│   │           └── services/
-│   │               └── asset-type-detector.ts # Asset type classification logic
-│   ├── persistence/
-│   │   ├── db.ts                              # MongoDB connection & collections
-│   │   └── schema.ts                          # MongoDB document schemas
-│   ├── lib/
-│   │   └── logger.ts                          # Logging utilities
-│   └── services/
-│       └── mongoose.ts                # Database service wrapper
+│   │       ├── assets/
+│   │       │   ├── assets.routes.ts
+│   │       │   ├── assets.controller.ts
+│   │       │   ├── assets.service.ts
+│   │       │   ├── assets.store.ts
+│   │       │   ├── asset-summary.*.ts
+│   │       │   └── models/   # zod schemas + mongoose models
+│   │       └── chat/
+│   │           ├── chat.routes.ts
+│   │           ├── chat.controller.ts
+│   │           ├── chat.service.ts
+│   │           └── models/
+│   ├── db/
+│   │   └── mongoose.ts
+│   └── utils/
+│       ├── logger.ts
+│       └── response.ts
 ├── tests/
-│   ├── setup.ts                               # Test configuration
-│   ├── health-endpoints.test.ts               # Health check tests
-│   └── api/v1/assets/
-│       ├── assets-routes.test.ts              # API endpoint tests
-│       ├── assets-service.test.ts             # Service unit tests
-│       └── assets-store.test.ts               # Persistence layer tests
-├── docker-compose.yml                         # MongoDB container setup
-├── index.ts                                   # Main application entry point
-├── package.json                               # Dependencies and scripts
-├── tsconfig.json                              # TypeScript configuration
-├── .env.example                               # Environment variables template
-└── README.md                                  # This file
+├── docker-compose.yml
+├── Dockerfile
+├── package.json
+├── tsconfig.json
+└── .env.example
 ```
 
 ## 🛠 Installation
@@ -64,6 +69,7 @@ censys/
 - Node.js v18+ (for compatibility)
 - [Docker](https://www.docker.com/) and Docker Compose (for MongoDB)
 - OpenAI API key (optional, for AI features)
+- curl + jq (for quick endpoint checks in examples)
 
 ### Install Dependencies
 
@@ -88,6 +94,7 @@ PORT=3000
 NODE_ENV=development
 
 # Database Configuration
+# For local dev
 MONGODB_URL=mongodb://censys:censys_password@localhost:27017/censys?authSource=admin
 ```
 
@@ -95,13 +102,13 @@ MONGODB_URL=mongodb://censys:censys_password@localhost:27017/censys?authSource=a
 
 ### MongoDB Setup
 
-The application requires MongoDB for data persistence. You can run MongoDB using Docker:
+The application requires MongoDB for data persistence. Recommended: use Docker Compose.
 
 #### Option 1: Using Docker Compose (Recommended)
 
 Start MongoDB and the application together:
 ```bash
-bun run docker:up
+bun run docker:dev
 ```
 
 Or start only MongoDB:
@@ -113,19 +120,18 @@ bun run docker:mongodb
 
 If you prefer to install MongoDB locally:
 
-**macOS (using Homebrew):**
+macOS (Homebrew):
 ```bash
 brew tap mongodb/brew
 brew install mongodb-community@7.0
-brew db start mongodb/brew/mongodb-community
+brew services start mongodb/brew/mongodb-community
 ```
 
-**Ubuntu/Debian:**
+Ubuntu/Debian:
 ```bash
-sudo apt update
-sudo apt install -y mongodb-org
-sudo systemctl start mongod
-sudo systemctl enable mongod
+sudo apt-get update
+sudo apt-get install -y mongodb-org
+sudo systemctl enable --now mongod
 ```
 
 ### Database Setup
@@ -136,14 +142,21 @@ MongoDB will automatically create the database and collections when the applicat
 
 ### Development Mode
 
-1. **Start MongoDB** (if not using Docker Compose):
+1. Start MongoDB (if not using Docker Compose):
 ```bash
 bun run docker:mongodb
 ```
 
-2. **Start the application**:
+2. Start the application:
 ```bash
 bun run dev
+```
+
+3. Verify health endpoints:
+```bash
+curl -s http://localhost:3000/ | jq
+curl -s http://localhost:3000/healthz | jq
+curl -s http://localhost:3000/readyz | jq
 ```
 
 ### Production Mode
@@ -169,21 +182,12 @@ bun run docker:down
 
 The server will start on `http://localhost:3000` (or the port specified in your `.env` file).
 
-### Health Check
-
-Once running, verify the API is working:
+### Quick Health Check
 
 ```bash
-curl http://localhost:3000/
-```
-
-Expected response:
-```json
-{
-  "message": "Censys API Server",
-  "status": "healthy",
-  "timestamp": "2025-08-08T14:00:00.000Z"
-}
+curl -s http://localhost:3000/ | jq
+curl -s http://localhost:3000/healthz | jq
+curl -s http://localhost:3000/readyz | jq
 ```
 
 ## 🧪 Testing
@@ -228,116 +232,61 @@ http://localhost:3000/api/v1
 
 ### Endpoints
 
-#### Asset Management
+#### Asset Management (base: `/api/v1`)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/assets` | Upload JSON files and create assets |
-| GET | `/assets` | Get all assets |
-| GET | `/assets/web` | Get web assets only |
-| GET | `/assets/hosts` | Get host assets only |
-| GET | `/assets/hosts/:id` | Get specific host asset by ID |
+| POST | `/assets/web/upload` | Upload JSON file with certificates array; creates/updates web assets |
+| POST | `/assets/hosts/upload` | Upload JSON file with `hosts` array; creates/updates host assets |
+| GET | `/assets/web` | List web assets |
 | GET | `/assets/web/:id` | Get specific web asset by ID |
 | GET | `/assets/web/:id/summary` | Get web asset security summary |
+| GET | `/assets/hosts` | List host assets |
+| GET | `/assets/hosts/:id` | Get specific host asset by ID |
 | GET | `/assets/hosts/:id/summary` | Get host asset security summary |
 
-#### Health & Monitoring
+#### Operations (base: `/`)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/` | API root - basic health check |
-| GET | `/livez` | Kubernetes liveness probe |
-| GET | `/readyz` | Kubernetes readiness probe |
+| GET | `/` | Root info (message, version, uptime) |
+| GET | `/healthz` | Liveness probe + db/jobs snapshot |
+| GET | `/readyz` | Readiness probe (MongoDB ping) |
 | GET | `/info` | Application information |
-| GET | `/metrics` | Prometheus metrics |
-| GET | `/assets/health` | Asset service health status |
-| GET | `/assets/status` | Asset service detailed status |
+| GET | `/jobs` | In-memory jobs queue status |
 
 ### Example Requests
 
-#### Upload JSON Files to Create Assets
+#### Upload JSON Files
+
+- Web assets (certificates JSON):
+```bash
+curl -s -X POST http://localhost:3000/api/v1/assets/web/upload \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@tests/api/v1/assets/web_properties_dataset.json" | jq
+```
+
+- Host assets (hosts JSON):
+```bash
+curl -s -X POST http://localhost:3000/api/v1/assets/hosts/upload \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@tests/api/v1/assets/hosts_dataset.json" | jq
+```
+
+#### List and Retrieve Assets
 
 ```bash
-curl -X POST http://localhost:3000/api/v1/assets \
-  -H "Content-Type: application/json" \
-  -d '{
-    "files": [
-      {
-        "name": "web-config.json",
-        "type": "application/json",
-        "size": 1024,
-        "content": "eyJzZXJ2ZXIiOiAibmdpbngiLCAicG9ydCI6IDgwfQ=="
-      },
-      {
-        "name": "hosts.json",
-        "type": "application/json",
-        "size": 512,
-        "content": "eyJob3N0cyI6IFsiMTkyLjE2OC4xLjEiLCAiMTAuMC4wLjEiXX0="
-      }
-    ]
-  }'
-```
+# List web assets
+curl -s http://localhost:3000/api/v1/assets/web | jq
 
-Response:
-```json
-{
-  "data": {
-    "id": "asset_1754661618495_abc123def",
-    "type": "host",
-    "files": [
-      {
-        "name": "web-config.json",
-        "type": "application/json",
-        "size": 1024,
-        "content": "eyJzZXJ2ZXIiOiAibmdpbngiLCAicG9ydCI6IDgwfQ=="
-      }
-    ],
-    "status": "processing",
-    "createdAt": "2025-08-08T14:00:00.000Z",
-    "hostMetadata": {
-      "ipAddresses": ["192.168.1.1", "10.0.0.1"],
-      "hostnames": [],
-      "ports": [80],
-      "services": ["nginx"],
-      "operatingSystem": null
-    }
-  },
-  "success": true
-}
-```
+# List host assets
+curl -s http://localhost:3000/api/v1/assets/hosts | jq
 
-#### Get All Assets
+# Get a specific web asset
+curl -s http://localhost:3000/api/v1/assets/web/<id> | jq
 
-```bash
-curl -X GET http://localhost:3000/api/v1/assets
-```
-
-Response:
-```json
-{
-  "data": [
-    {
-      "id": "asset_1754661618495_abc123def",
-      "type": "host",
-      "files": [...],
-      "status": "completed",
-      "createdAt": "2025-08-08T14:00:00.000Z",
-      "hostMetadata": {
-        "ipAddresses": ["192.168.1.1"],
-        "hostnames": ["server.example.com"],
-        "ports": [80, 443],
-        "services": ["nginx", "docker"]
-      },
-      "processingResults": {
-        "processedFiles": 2,
-        "totalSize": 1536,
-        "assetType": "host",
-        "processingTimestamp": "2025-08-08T14:00:15.000Z"
-      }
-    }
-  ],
-  "success": true
-}
+# Get a specific host asset
+curl -s http://localhost:3000/api/v1/assets/hosts/<id> | jq
 ```
 
 #### Get Web Assets Only
@@ -374,23 +323,11 @@ The API automatically detects and classifies uploaded JSON files into two asset 
 
 ### Asset Security Summaries
 
-The API provides AI-generated security summaries for both web and host assets. These summaries analyze the asset data and provide:
-
-#### Summary Schema
-- **id**: Asset identifier (domain for web assets, IP for host assets)
-- **summary**: 2-4 sentence terse, specific, evidence-based summary
-- **severity**: Risk level (low, medium, high, critical)
-- **evidence**: Structured data including certificate info, security indicators
-- **findings**: 1-5 short bullets citing specific data points
-- **recommendations**: ≤4 prioritized, actionable security recommendations
-- **assumptions**: Notes about missing/ambiguous fields that were inferred
-- **data_coverage**: Percentage of fields present and list of missing fields
-
-#### Summary Generation
-- Summaries are automatically generated via background jobs when assets are uploaded
-- Access summaries via `/api/v1/assets/web/:id/summary` or `/api/v1/assets/hosts/:id/summary`
-- Returns 404 if no summary exists for the asset
-- Summaries are stored separately in `web_asset_summaries` and `host_asset_summaries` collections
+- Summaries are generated asynchronously via background jobs after uploads
+- Endpoints:
+  - `/api/v1/assets/web/:id/summary`
+  - `/api/v1/assets/hosts/:id/summary`
+- If not yet generated, endpoints return 404
 
 ### File Upload Specifications
 
@@ -413,6 +350,7 @@ bun run start            # Start production server
 bun run docker:mongodb   # Start MongoDB container only
 bun run docker:dev       # Start MongoDB + App with Docker Compose
 bun run docker:down      # Stop all containers
+bun run docker:logs      # Tail Docker Compose logs
 
 # Testing
 bun test                 # Run all tests

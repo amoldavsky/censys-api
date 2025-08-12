@@ -2,13 +2,14 @@ import "dotenv/config";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 
-import { routes as assetsRoutes } from "@/api/v1/assets/assets.routes.ts";
-import { routes as chatRoutes } from "@/api/v1/chat/chat.routes.ts";
-import * as mongoose from "../db/mongoose.ts";
-import { routes as opsRoutes } from "../api/ops/ops.routes.ts";
+import { routes as assetsRoutes } from "@/api/v1/assets/assets.routes";
+import { routes as chatRoutes } from "@/api/v1/chat/chat.routes";
+import * as mongoose from "@/db/mongoose";
+import { routes as opsRoutes } from "@/api/ops/ops.routes";
 import * as jobsService from "./services/jobs";
 import { pinoLogger } from "./middlewares/pino-logger";
 import logger from "@/utils/logger";
+import { fail } from "@/utils/response";
 
 
 // Initialize Hono app
@@ -51,12 +52,12 @@ app.route("/api/v1", assetsRoutes);
 app.route("/api/v1", chatRoutes);
 
 // 404 handler
-app.notFound((c) => c.json({ error: "Not Found" }, 404));
+app.notFound((c) => fail(c, "Not Found", 404));
 
 // Error handler (last)
 app.onError((err, c) => {
   logger.error({ err, path: c.req.path, method: c.req.method }, "Unhandled error");
-  return c.json({ error: "Internal Server Error" }, 500);
+  return fail(c, "Internal server error", 500);
 });
 
 // Start server (for Bun)

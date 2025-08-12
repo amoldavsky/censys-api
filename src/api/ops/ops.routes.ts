@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import * as controller from './ops.controller.ts'
+import * as controller from './ops.controller'
 
 export const routes = new Hono()
 
@@ -7,7 +7,7 @@ export const routes = new Hono()
 routes.get('/healthz', controller.health);
 
 // Readiness: "can we serve traffic?"
-routes.get('/ready', controller.ready);
+routes.get('/readyz', controller.ready);
 
 routes.get('/info', controller.info);
 

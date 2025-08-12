@@ -3,7 +3,7 @@ import * as mongoose from "@/db/mongoose";
 import mongooseLib from "mongoose";
 
 // Test database configuration for integration tests
-const TEST_MONGODB_URL = process.env.TEST_MONGODB_URL || "mongodb://localhost:27017/censys_test";
+const TEST_MONGODB_URL = process.env.TEST_MONGODB_URL || "mongodb://censys:censys_password@localhost:27017/censys_test?authSource=admin";
 
 beforeAll(async () => {
   // Connect to test database

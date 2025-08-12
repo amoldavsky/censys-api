@@ -5,7 +5,7 @@ import {
   type WebAsset,
   WebAssetSchema
 } from "@/api/v1/assets/models/asset.schema";
-import type {WebAssetDoc} from "@/api/v1/assets/models/asset.model.ts";
+import type {WebAssetDoc} from "@/api/v1/assets/models/asset.model";
 import logger from "@/utils/logger";
 
 
@@ -74,32 +74,44 @@ export async function getHostAssetById(id: string): Promise<HostAsset | null> {
 
 // Bulk insert (overwrite) web assets
 export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
-  if (!assets.length) return [];
+  if (!assets.length) {
+    await store.insertWebAssets([]);
+    return [];
+  }
 
-  // Validate that all assets have IDs (should be set by controller)
+  // Ensure assets have IDs; derive shortest domain for web assets if not provided
   const assetsWithIds = assets.map(asset => {
     if (!asset.id) {
-      throw new Error("Web asset must have an id field");
+      const domains = asset.domains || [];
+      if (!domains.length) throw new Error("Web asset must have at least one domain to derive id");
+      const shortest = domains.reduce((s, d) => (d.length < s.length ? d : s));
+      return { ...asset, id: shortest };
     }
     return asset;
   });
 
-  logger.info({ assetCount: assetsWithIds.length }, "Attempting to insert/update web assets");
+  logger.info({ assetCount: assetsWithIds.length }, "Attempting to overwrite existing web assets");
   await store.insertWebAssets(assetsWithIds);
   logger.info("Bulk write operation completed");
 
-  // Return the assets with source: "upload" added
-  const assetsStored = assetsWithIds.map(asset => ({
-    ...asset,
-    source: "upload" as const
-  }));
+  // Fetch and return only assets that actually exist (overwrite-only behavior)
+  const results: WebAsset[] = [];
+  for (const a of assetsWithIds) {
+    const doc = await store.getWebAssetById(a.id!);
+    if (!doc) continue; // not updated (no upsert)
+    const parsed = WebAssetSchema.parse(doc);
+    results.push({ ...parsed, id: doc._id, source: "upload" as const });
+  }
 
-  logger.info({ processedCount: assetsStored.length }, "Successfully processed web assets");
-  return assetsStored;
+  logger.info({ processedCount: results.length }, "Successfully processed existing web assets");
+  return results;
 }
 
 export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]> {
-  if (!assets.length) return [];
+  if (!assets.length) {
+    await store.insertHostAssets([]);
+    return [];
+  }
 
   // Validate that all assets have IDs (should be set by controller)
   const assetsWithIds = assets.map(asset => {
@@ -109,18 +121,21 @@ export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]
     return asset;
   });
 
-  logger.info({ assetCount: assetsWithIds.length }, "Attempting to insert/update host assets");
+  logger.info({ assetCount: assetsWithIds.length }, "Attempting to overwrite existing host assets");
   await store.insertHostAssets(assetsWithIds);
   logger.info("Bulk write operation completed");
 
-  // Return the assets with source: "upload" added
-  const assetsStored = assetsWithIds.map(asset => ({
-    ...asset,
-    source: "upload" as const
-  }));
+  // Fetch and return only assets that actually exist (overwrite-only behavior)
+  const results: HostAsset[] = [];
+  for (const a of assetsWithIds) {
+    const doc = await store.getHostAssetById(a.id!);
+    if (!doc) continue; // not updated (no upsert)
+    const parsed = HostAssetSchema.parse(doc);
+    results.push({ ...parsed, id: doc._id, source: "upload" as const });
+  }
 
-  logger.info({ processedCount: assetsStored.length }, "Successfully processed host assets");
-  return assetsStored;
+  logger.info({ processedCount: results.length }, "Successfully processed existing host assets");
+  return results;
 }
 
 export async function deleteWebAsset(id: string): Promise<boolean> {

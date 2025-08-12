@@ -100,7 +100,7 @@ export async function processChat(request: ChatRequest): Promise<ChatResponse> {
 }
 
 /**
- * Build system message with asset context
+ * Build system prompt with asset context
  */
 function buildSystemMessage(assetData?: any, summaryData?: any): string {
     if (!assetData && !summaryData) {
