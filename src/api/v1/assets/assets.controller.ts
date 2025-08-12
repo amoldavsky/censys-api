@@ -78,7 +78,7 @@ export async function getHostAssetById(c: Context) {
  * @swagger
  * /api/v1/assets/web/upload:
  *   post:
- *     summary: Upload JSON (object with array or bare array) of web assets (overwrite existing only)
+ *     summary: Upload JSON (object with array or bare array) of web assets (create new or update existing)
  *     tags: [Assets]
  *     requestBody:
  *       required: true
@@ -92,7 +92,7 @@ export async function getHostAssetById(c: Context) {
  *                 format: binary
  *                 description: JSON with an array field (e.g. `hosts`) or a bare array of items with `ip`
  *     responses:
- *       200: { description: Overwrote existing web assets; non-existing are ignored }
+ *       200: { description: Created new or updated existing web assets }
  *       415: { description: Only JSON file is accepted }
  *       412: { description: Malformed JSON or no array found }
  */
@@ -140,7 +140,7 @@ export async function uploadWebAssets(c: Context) {
 
     logger.info({ assetCount: assets.length }, "Schema validation passed for web assets");
 
-    const assetsStored = await svc.insertWebAssets(assets); // overwrite existing only
+    const assetsStored = await svc.insertWebAssets(assets); // create new or update existing
     logger.info({ storedCount: assetsStored.length }, "Successfully stored web assets");
 
     // Queue summary generation jobs for each uploaded asset
@@ -166,7 +166,7 @@ export async function uploadWebAssets(c: Context) {
  * @swagger
  * /api/v1/assets/hosts/upload:
  *   post:
- *     summary: Upload JSON (object with array or bare array) of host assets (overwrite existing only)
+ *     summary: Upload JSON (object with array or bare array) of host assets (create new or update existing)
  *     tags: [Assets]
  *     requestBody:
  *       required: true
@@ -180,7 +180,7 @@ export async function uploadWebAssets(c: Context) {
  *                 format: binary
  *                 description: JSON with an array field (e.g. `domains`) or a bare array of items with `domain`
  *     responses:
- *       200: { description: Overwrote existing host assets; non-existing are ignored }
+ *       200: { description: Created new or updated existing host assets }
  *       415: { description: Only JSON file is accepted }
  *       412: { description: Malformed JSON or no array found }
  */
@@ -373,7 +373,7 @@ export async function getHostAssetSummary(c: Context) {
   if (failedJob) {
     return ok(c, {
       status: "failed",
-      message: "Summary generation failed. This may be due to API quota limits.",
+      message: "Summary generation failed.",
       canRetry: true
     });
   }

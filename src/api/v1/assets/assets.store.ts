@@ -7,7 +7,7 @@ async function ensureConnected() {
   if (!db.isConnected()) await db.connect();
 }
 
-// --- Overwrite (no upsert) ---
+// --- Upsert (create or update) ---
 export async function overwriteWebAsset(asset: { id: string; source: string }): Promise<void> {
   await ensureConnected();
   await WebAssetModel.updateOne(
@@ -44,7 +44,7 @@ export async function insertWebAssets(assets: any[]): Promise<void> {
               ...assetData  // Spread all the uploaded asset data except id
             }
           },
-          upsert: false,
+          upsert: true,
         },
       };
     })
@@ -82,7 +82,7 @@ export async function insertHostAssets(assets: (HostAsset & { id: string })[]): 
             updatedAt: new Date(),
             ...assetData  // Spread all the uploaded asset data except id
           },
-          upsert: false,
+          upsert: true,
         },
       };
     }),

@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "description": "Test host data",
+    "hosts_count": 1
+  },
+  "hosts": [
+    {
+      "ip": "168.196.241.227",
+      "location": {
+        "city": "New York City",
+        "country": "United States",
+        "country_code": "US"
+      },
+      "autonomous_system": {
+        "asn": 263744,
+        "name": "Udasha S.A."
+      }
+    }
+  ]
+}

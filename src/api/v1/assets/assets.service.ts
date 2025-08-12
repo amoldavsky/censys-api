@@ -72,7 +72,7 @@ export async function getHostAssetById(id: string): Promise<HostAsset | null> {
   return { ...parseResult.data, id: assetStored._id };
 }
 
-// Bulk insert (overwrite) web assets
+// Bulk upsert (create or update) web assets
 export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
   if (!assets.length) {
     await store.insertWebAssets([]);
@@ -90,20 +90,20 @@ export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
     return asset;
   });
 
-  logger.info({ assetCount: assetsWithIds.length }, "Attempting to overwrite existing web assets");
+  logger.info({ assetCount: assetsWithIds.length }, "Attempting to upsert web assets");
   await store.insertWebAssets(assetsWithIds);
   logger.info("Bulk write operation completed");
 
-  // Fetch and return only assets that actually exist (overwrite-only behavior)
+  // Fetch and return all assets that were processed (both created and updated)
   const results: WebAsset[] = [];
   for (const a of assetsWithIds) {
     const doc = await store.getWebAssetById(a.id!);
-    if (!doc) continue; // not updated (no upsert)
+    if (!doc) continue; // should not happen with upsert: true
     const parsed = WebAssetSchema.parse(doc);
     results.push({ ...parsed, id: doc._id, source: "upload" as const });
   }
 
-  logger.info({ processedCount: results.length }, "Successfully processed existing web assets");
+  logger.info({ processedCount: results.length }, "Successfully processed web assets");
   return results;
 }
 
@@ -121,20 +121,23 @@ export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]
     return asset;
   });
 
-  logger.info({ assetCount: assetsWithIds.length }, "Attempting to overwrite existing host assets");
+  logger.info({ assetCount: assetsWithIds.length }, "Attempting to upsert host assets");
   await store.insertHostAssets(assetsWithIds);
   logger.info("Bulk write operation completed");
 
-  // Fetch and return only assets that actually exist (overwrite-only behavior)
+  // Fetch and return all assets that were processed (both created and updated)
   const results: HostAsset[] = [];
   for (const a of assetsWithIds) {
     const doc = await store.getHostAssetById(a.id!);
-    if (!doc) continue; // not updated (no upsert)
-    const parsed = HostAssetSchema.parse(doc);
+    if (!doc) continue; // should not happen with upsert: true
+
+    // Ensure id field exists before parsing (use _id as fallback)
+    const docWithId = { ...doc, id: doc._id };
+    const parsed = HostAssetSchema.parse(docWithId);
     results.push({ ...parsed, id: doc._id, source: "upload" as const });
   }
 
-  logger.info({ processedCount: results.length }, "Successfully processed existing host assets");
+  logger.info({ processedCount: results.length }, "Successfully processed host assets");
   return results;
 }
 
