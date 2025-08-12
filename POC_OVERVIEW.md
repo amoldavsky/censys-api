@@ -130,10 +130,20 @@ Documentation and Process
   - Single-turn chat agent (LangChain)
   - Multi-step orchestration for summary + validation (LangGraph)
   - Prompt templating and context design strategies
-- Python and experimentation via notebooks
-  - Problem isolation in a notebook
-  - Iterative improvement
-  - Deployment back into the app
+  - Python and experimentation via notebooks
+    - Problem isolation in a notebook
+    - Iterative improvement
+    - Deployment back into the app
+
+#### Summary Agent LangGraph Workflow
+![LangGraph Workflow](docs/langgraph.jpeg)
+
+The summary generation uses a LangGraph workflow with:
+- **Generate Node**: Creates summaries using Mustache templates with asset evidence and conditions
+- **Validation Node**: Validates summaries against evidence specs, derived fields, and quality criteria
+- **Retry Logic**: Up to 2 attempts with validation feedback loop
+- **Error Handling**: Proceeds with available response after max attempts, logging validation issues
+
 
 ### Out of Scope / Not Demonstrated
 - Vectors/embeddings
