@@ -35,15 +35,8 @@ describe("Chat Service", () => {
         messages: [
           { role: "user", content: "Can you analyze my web assets?" }
         ],
-        asset_data: {
-          web_assets: [
-            {
-              fingerprint_sha256: "abc123def456",
-              domains: ["example.com", "www.example.com"],
-              certificate_authority: { name: "Let's Encrypt" }
-            }
-          ]
-        }
+        assetId: "example.com",
+        assetType: "web"
       };
 
       const response = await processChat(request);
@@ -58,16 +51,8 @@ describe("Chat Service", () => {
         messages: [
           { role: "user", content: "What can you tell me about my host assets?" }
         ],
-        asset_data: {
-          host_assets: [
-            {
-              ip: "192.168.1.1",
-              location: { country: "US" },
-              autonomous_system: { name: "Example AS" },
-              services: [{ port: 80, service: "http" }]
-            }
-          ]
-        }
+        assetId: "192.168.1.1",
+        assetType: "host"
       };
 
       const response = await processChat(request);

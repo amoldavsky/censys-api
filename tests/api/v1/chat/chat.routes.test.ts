@@ -16,11 +16,8 @@ describe("Chat Routes", () => {
         messages: [
           { role: "user", content: "Hello, can you help me analyze my assets?" }
         ],
-        asset_data: {
-          web_assets: [
-            { fingerprint_sha256: "abc123", domains: ["example.com"] }
-          ]
-        }
+        assetId: "example.com",
+        assetType: "web"
       };
 
       const response = await app.request("/api/v1/chat", {
@@ -38,9 +35,8 @@ describe("Chat Routes", () => {
 
     it("should reject request without messages", async () => {
       const requestBody = {
-        asset_data: {
-          web_assets: []
-        }
+        assetId: "example.com",
+        assetType: "web"
       };
 
       const response = await app.request("/api/v1/chat", {
@@ -57,9 +53,8 @@ describe("Chat Routes", () => {
     it("should reject request with empty messages array", async () => {
       const requestBody = {
         messages: [],
-        asset_data: {
-          web_assets: []
-        }
+        assetId: "example.com",
+        assetType: "web"
       };
 
       const response = await app.request("/api/v1/chat", {
@@ -73,7 +68,7 @@ describe("Chat Routes", () => {
       expect(data.success).toBe(false);
     });
 
-    it("should accept request without asset_data", async () => {
+    it("should accept request without asset data", async () => {
       const requestBody = {
         messages: [
           { role: "user", content: "Hello" }
@@ -108,11 +103,8 @@ describe("Chat Routes", () => {
           { role: "assistant", content: "Web assets are digital certificates..." },
           { role: "user", content: "Can you analyze mine?" }
         ],
-        asset_data: {
-          web_assets: [
-            { fingerprint_sha256: "abc123", domains: ["example.com"] }
-          ]
-        }
+        assetId: "example.com",
+        assetType: "web"
       };
 
       const response = await app.request("/api/v1/chat", {
@@ -133,21 +125,9 @@ describe("Chat Routes", () => {
         messages: [
           { role: "user", content: "Hello" }
         ],
-        asset_data: {
-          web_assets: [
-            {
-              fingerprint_sha256: "abc123",
-              domains: ["example.com"],
-              certificate_authority: { name: "Test CA" }
-            }
-          ],
-          host_assets: [
-            {
-              ip_address: "192.168.1.1",
-              operating_system: "Linux"
-            }
-          ]
-        }
+        asset_id: "example.com",
+        asset_type: "web",
+        summary_id: "summary-123"
       };
 
       const response = await app.request("/api/v1/chat", {
