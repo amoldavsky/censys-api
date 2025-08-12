@@ -254,6 +254,70 @@ export async function uploadHostAssets(c: Context) {
 
 /**
  * @swagger
+ * /api/v1/assets/web/{id}:
+ *   delete:
+ *     summary: Delete a web asset and its summary
+ *     tags: [Assets]
+ */
+export async function deleteWebAsset(c: Context) {
+  try {
+    const id = c.req.param("id");
+
+    // Find and cancel any in-progress summary jobs
+    const activeJobs = jobsService.findJobsByAssetId(id);
+    activeJobs.forEach(job => {
+      jobsService.cancelJob(job.id);
+      logger.info({ jobId: job.id, assetId: id }, "Cancelled summary job for web asset deletion");
+    });
+
+    // Delete summary first
+    await summarySvc.deleteWebAssetSummary(id);
+
+    // Delete asset
+    const deleted = await svc.deleteWebAsset(id);
+    if (!deleted) return fail(c, "Asset not found", 404);
+
+    return ok(c, { message: "Web asset deleted successfully" });
+  } catch (err) {
+    logger.error({ error: err }, "Web asset deletion error");
+    return fail(c, "Failed to delete web asset", 500);
+  }
+}
+
+/**
+ * @swagger
+ * /api/v1/assets/hosts/{id}:
+ *   delete:
+ *     summary: Delete a host asset and its summary
+ *     tags: [Assets]
+ */
+export async function deleteHostAsset(c: Context) {
+  try {
+    const id = c.req.param("id");
+
+    // Find and cancel any in-progress summary jobs
+    const activeJobs = jobsService.findJobsByAssetId(id);
+    activeJobs.forEach(job => {
+      jobsService.cancelJob(job.id);
+      logger.info({ jobId: job.id, assetId: id }, "Cancelled summary job for host asset deletion");
+    });
+
+    // Delete summary first
+    await summarySvc.deleteHostAssetSummary(id);
+
+    // Delete asset
+    const deleted = await svc.deleteHostAsset(id);
+    if (!deleted) return fail(c, "Asset not found", 404);
+
+    return ok(c, { message: "Host asset deleted successfully" });
+  } catch (err) {
+    logger.error({ error: err }, "Host asset deletion error");
+    return fail(c, "Failed to delete host asset", 500);
+  }
+}
+
+/**
+ * @swagger
  * /api/v1/assets/web/{id}/summary:
  *   get:
  *     summary: Get a web asset summary by id

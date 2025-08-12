@@ -10,9 +10,12 @@ registerErrorHandling(routes);
 routes.get("/web", jsonOnlyMiddleware, ctrl.listWebAssets);
 routes.get("/web/:id", jsonOnlyMiddleware, ctrl.getWebAssetById);
 routes.get("/web/:id/summary", jsonOnlyMiddleware, ctrl.getWebAssetSummary);
+routes.delete("/web/:id", jsonOnlyMiddleware, ctrl.deleteWebAsset);
+
 routes.get("/hosts", jsonOnlyMiddleware, ctrl.listHostAssets);
 routes.get("/hosts/:id", jsonOnlyMiddleware, ctrl.getHostAssetById);
 routes.get("/hosts/:id/summary", jsonOnlyMiddleware, ctrl.getHostAssetSummary);
+routes.delete("/hosts/:id", jsonOnlyMiddleware, ctrl.deleteHostAsset);
 
 // Upload endpoints (no jsonOnlyMiddleware - they handle their own validation)
 routes.post("/web/upload", ctrl.uploadWebAssets);

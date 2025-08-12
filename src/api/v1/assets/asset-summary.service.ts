@@ -106,3 +106,25 @@ export async function listHostAssetSummaries(): Promise<HostAssetSummary[]> {
     return HostAssetSummarySchema.parse(summary);
   });
 }
+
+/**
+ * Delete a web asset summary
+ */
+export async function deleteWebAssetSummary(assetId: string): Promise<boolean> {
+  const deleted = await store.deleteWebAssetSummary(assetId);
+  if (deleted) {
+    logger.info({ assetId }, "Web asset summary deleted successfully");
+  }
+  return deleted;
+}
+
+/**
+ * Delete a host asset summary
+ */
+export async function deleteHostAssetSummary(assetId: string): Promise<boolean> {
+  const deleted = await store.deleteHostAssetSummary(assetId);
+  if (deleted) {
+    logger.info({ assetId }, "Host asset summary deleted successfully");
+  }
+  return deleted;
+}

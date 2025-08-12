@@ -146,6 +146,34 @@ async function processJob(jobId: string): Promise<void> {
 }
 
 /**
+ * Find jobs by asset ID in payload
+ */
+export function findJobsByAssetId(assetId: string): Job[] {
+  return Array.from(jobs.values()).filter(job =>
+    job.payload?.asset?.id === assetId &&
+    (job.status === 'pending' || job.status === 'processing')
+  );
+}
+
+/**
+ * Cancel a job by ID
+ */
+export function cancelJob(jobId: string): boolean {
+  const job = jobs.get(jobId);
+  if (!job) return false;
+
+  if (job.status === 'pending' || job.status === 'processing') {
+    job.status = 'failed';
+    job.error = 'Job cancelled';
+    job.completedAt = new Date();
+    logger.info({ jobId }, "Job cancelled");
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * Graceful shutdown - wait for all jobs to complete
  */
 export async function shutdown(): Promise<void> {

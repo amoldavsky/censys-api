@@ -109,3 +109,16 @@ export async function listHostAssets(): Promise<HostAssetDoc[]> {
   const docs = await HostAssetModel.find({}).sort({ createdAt: -1 }).lean().exec();
   return docs;
 }
+
+// --- Deletes ---
+export async function deleteWebAsset(id: string): Promise<boolean> {
+  await ensureConnected();
+  const result = await WebAssetModel.deleteOne({ _id: id }).exec();
+  return result.deletedCount > 0;
+}
+
+export async function deleteHostAsset(id: string): Promise<boolean> {
+  await ensureConnected();
+  const result = await HostAssetModel.deleteOne({ _id: id }).exec();
+  return result.deletedCount > 0;
+}

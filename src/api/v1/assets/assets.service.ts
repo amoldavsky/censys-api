@@ -122,3 +122,19 @@ export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]
   logger.info({ processedCount: assetsStored.length }, "Successfully processed host assets");
   return assetsStored;
 }
+
+export async function deleteWebAsset(id: string): Promise<boolean> {
+  const deleted = await store.deleteWebAsset(id);
+  if (deleted) {
+    logger.info({ assetId: id }, "Web asset deleted successfully");
+  }
+  return deleted;
+}
+
+export async function deleteHostAsset(id: string): Promise<boolean> {
+  const deleted = await store.deleteHostAsset(id);
+  if (deleted) {
+    logger.info({ assetId: id }, "Host asset deleted successfully");
+  }
+  return deleted;
+}
