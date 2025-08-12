@@ -1,6 +1,12 @@
 import type { Context, Next } from "hono";
 import logger from "@/utils/logger";
 
+/**
+ * Minimal request logging middleware using pino.
+ * @param c Hono context.
+ * @param next Next middleware function.
+ * @returns Promise that resolves when middleware chain completes.
+ */
 export async function pinoLogger(c: Context, next: Next) {
   const start = performance.now();
   try {

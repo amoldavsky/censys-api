@@ -2,6 +2,12 @@ import type { Context, Next } from "hono";
 import { fail } from "../../utils/response";
 import camelcaseKeys from "camelcase-keys";
 
+/**
+ * Enforces JSON for POST and converts snake_case keys to camelCase via req.json override.
+ * @param c Hono context.
+ * @param next Next middleware function.
+ * @returns Promise that resolves when middleware chain completes.
+ */
 export async function jsonOnlyMiddleware(c: Context, next: Next) {
   const contentType = c.req.header("content-type");
   if (c.req.method === "POST" && (!contentType || !contentType.includes("application/json"))) {

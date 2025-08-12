@@ -42,12 +42,23 @@ queue.on('error', (error) => {
 /**
  * Register a job handler for a specific job type
  */
+/**
+ * Register a handler for a given job type.
+ * @param jobType Type identifier for the job.
+ * @param handler Function to execute for jobs of this type.
+ */
 export function registerHandler(jobType: string, handler: JobHandler): void {
   handlers.set(jobType, handler);
 }
 
 /**
  * Submit a new job to the queue
+ */
+/**
+ * Submit a new job to the in-memory queue.
+ * @param jobType Type identifier for the job.
+ * @param payload Data to pass to the job handler.
+ * @returns Unique job identifier.
  */
 export function submitJob(jobType: string, payload: any): string {
   const jobId = `job_${++jobCounter}_${Date.now()}`;
@@ -74,6 +85,11 @@ export function submitJob(jobType: string, payload: any): string {
 /**
  * Get job status by ID
  */
+/**
+ * Get job status by id.
+ * @param jobId Job identifier.
+ * @returns Job object or null if not found.
+ */
 export function getJobStatus(jobId: string): Job | null {
   return jobs.get(jobId) || null;
 }
@@ -81,12 +97,20 @@ export function getJobStatus(jobId: string): Job | null {
 /**
  * Get all jobs (for monitoring)
  */
+/**
+ * Return all known jobs (debug/monitoring).
+ * @returns Array of all job objects.
+ */
 export function getAllJobs(): Job[] {
   return Array.from(jobs.values());
 }
 
 /**
  * Get queue statistics
+ */
+/**
+ * Lightweight queue statistics snapshot.
+ * @returns Object containing queue size, pending count, and job counts.
  */
 export function getQueueStats() {
   return {
@@ -148,6 +172,11 @@ async function processJob(jobId: string): Promise<void> {
 /**
  * Find jobs by asset ID in payload
  */
+/**
+ * Find active (pending/processing) jobs by asset id.
+ * @param assetId Asset identifier to search for.
+ * @returns Array of matching active jobs.
+ */
 export function findJobsByAssetId(assetId: string): Job[] {
   return Array.from(jobs.values()).filter(job =>
     job.payload?.asset?.id === assetId &&
@@ -157,6 +186,11 @@ export function findJobsByAssetId(assetId: string): Job[] {
 
 /**
  * Cancel a job by ID
+ */
+/**
+ * Cancel a job by id if still pending or processing.
+ * @param jobId Job identifier.
+ * @returns True if job was cancelled, false if not found or already completed.
  */
 export function cancelJob(jobId: string): boolean {
   const job = jobs.get(jobId);
@@ -175,6 +209,10 @@ export function cancelJob(jobId: string): boolean {
 
 /**
  * Graceful shutdown - wait for all jobs to complete
+ */
+/**
+ * Gracefully pause and drain the queue.
+ * @returns Promise that resolves when all jobs are complete.
  */
 export async function shutdown(): Promise<void> {
   logger.info("Shutting down jobs service");

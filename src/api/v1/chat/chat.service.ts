@@ -7,17 +7,18 @@ import logger from "@/utils/logger";
 import * as assetService from "@/api/v1/assets/assets.service";
 import * as summaryStore from "@/api/v1/assets/asset-summary.store";
 
-// Initialize LLM instance once
-const llm = new ChatOpenAI({
-  model: "gpt-5-mini",
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 /**
- * Process a chat request with asset context
- * Messages are stateless - full conversation history is sent each time
+ * Process a chat request with optional asset/summary context via LLM.
+ * @param request Chat request containing messages and optional asset/summary IDs.
+ * @returns Promise resolving to chat response with assistant message.
  */
 export async function processChat(request: ChatRequest): Promise<ChatResponse> {
+  // Initialize LLM instance inside function for better testability
+  const llm = new ChatOpenAI({
+    model: "gpt-5-mini",
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
   try {
     // Debug logging
     logger.debug({ request }, "Chat service received request");

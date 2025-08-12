@@ -8,6 +8,11 @@ async function ensureConnected() {
 }
 
 // --- Upsert (create or update) ---
+/**
+ * Overwrite the source field for a web asset (no upsert).
+ * @param asset Object containing id and source.
+ * @returns Promise that resolves when update is complete.
+ */
 export async function overwriteWebAsset(asset: { id: string; source: string }): Promise<void> {
   await ensureConnected();
   await WebAssetModel.updateOne(
@@ -17,6 +22,11 @@ export async function overwriteWebAsset(asset: { id: string; source: string }): 
   ).exec();
 }
 
+/**
+ * Bulk upsert web assets using bulkWrite (ordered=false).
+ * @param assets Raw assets array; id is used as _id (or legacy fingerprint).
+ * @returns Promise that resolves when bulk operation is complete.
+ */
 export async function insertWebAssets(assets: any[]): Promise<void> {
   try {
     await ensureConnected();
@@ -62,6 +72,11 @@ export async function insertWebAssets(assets: any[]): Promise<void> {
   }
 }
 
+/**
+ * Bulk upsert host assets using bulkWrite.
+ * @param assets Host assets with id set (used as _id).
+ * @returns Promise that resolves when bulk operation is complete.
+ */
 export async function insertHostAssets(assets: (HostAsset & { id: string })[]): Promise<void> {
   await ensureConnected();
   if (!assets.length) return;
@@ -97,24 +112,42 @@ export async function insertHostAssets(assets: (HostAsset & { id: string })[]): 
 }
 
 // --- Reads ---
+/**
+ * Get a web asset document by id.
+ * @param id Asset identifier.
+ * @returns Promise resolving to web asset document or null if not found.
+ */
 export async function getWebAssetById(id: string): Promise<WebAssetDoc | null> {
   await ensureConnected();
   const doc = await WebAssetModel.findById(id).lean().exec();
   return doc;
 }
 
+/**
+ * Get a host asset document by id.
+ * @param id Asset identifier.
+ * @returns Promise resolving to host asset document or null if not found.
+ */
 export async function getHostAssetById(id: string): Promise<HostAssetDoc | null> {
   await ensureConnected();
   const doc = await HostAssetModel.findById(id).lean().exec();
   return doc;
 }
 
+/**
+ * List all web asset documents (newest first).
+ * @returns Promise resolving to array of web asset documents.
+ */
 export async function listWebAssets(): Promise<WebAssetDoc[]> {
   await ensureConnected();
   const docs = await WebAssetModel.find({}).sort({ createdAt: -1 }).lean().exec();
   return docs;
 }
 
+/**
+ * List all host asset documents (newest first).
+ * @returns Promise resolving to array of host asset documents.
+ */
 export async function listHostAssets(): Promise<HostAssetDoc[]> {
   await ensureConnected();
   const docs = await HostAssetModel.find({}).sort({ createdAt: -1 }).lean().exec();
@@ -122,12 +155,22 @@ export async function listHostAssets(): Promise<HostAssetDoc[]> {
 }
 
 // --- Deletes ---
+/**
+ * Delete a web asset by id.
+ * @param id Asset identifier.
+ * @returns Promise resolving to true if a document was deleted.
+ */
 export async function deleteWebAsset(id: string): Promise<boolean> {
   await ensureConnected();
   const result = await WebAssetModel.deleteOne({ _id: id }).exec();
   return result.deletedCount > 0;
 }
 
+/**
+ * Delete a host asset by id.
+ * @param id Asset identifier.
+ * @returns Promise resolving to true if a document was deleted.
+ */
 export async function deleteHostAsset(id: string): Promise<boolean> {
   await ensureConnected();
   const result = await HostAssetModel.deleteOne({ _id: id }).exec();

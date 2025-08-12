@@ -7,6 +7,11 @@ import * as jobsService from "@/app/services/jobs";
  * Liveness: is the process up?
  * Exposed at GET /healthz
  */
+/**
+ * Liveness probe handler.
+ * @param c Hono context.
+ * @returns JSON response with service health status.
+ */
 export async function health(c: Context) {
   const db_connected = dbIsConnected();
   const queue = jobsService.getQueueStats();
@@ -21,6 +26,11 @@ export async function health(c: Context) {
   });
 }
 
+/**
+ * Readiness probe handler (checks DB).
+ * @param c Hono context.
+ * @returns JSON response indicating readiness status.
+ */
 export async function ready(c: Context) {
     try {
       await dbPing();
@@ -30,6 +40,11 @@ export async function ready(c: Context) {
     }
 }
 
+/**
+ * Service info endpoint.
+ * @param c Hono context.
+ * @returns JSON response with service metadata.
+ */
 export async function info(c: Context) {
   return ok(c, {
       service: Bun.env.SERVICE_NAME ?? 'censys-api',
@@ -41,6 +56,11 @@ export async function info(c: Context) {
     });
 }
 
+/**
+ * Lightweight jobs queue status.
+ * @param c Hono context.
+ * @returns JSON response with queue statistics.
+ */
 export async function jobsStatus(c: Context) {
   const stats = jobsService.getQueueStats();
   return ok(c, stats);

@@ -29,6 +29,11 @@ jobsService.registerHandler('asset-summary', (payload) => summaryAgent.generateS
  *     summary: List web assets
  *     tags: [Assets]
  */
+/**
+ * List web assets.
+ * @param c Hono context.
+ * @returns JSON response with web assets list.
+ */
 export async function listWebAssets(c: Context) {
   const items = await svc.getWebAssets();
   return ok(c, toWebAssetListResponse(items));
@@ -40,6 +45,11 @@ export async function listWebAssets(c: Context) {
  *   get:
  *     summary: Get a web asset by id
  *     tags: [Assets]
+ */
+/**
+ * Get a web asset by id.
+ * @param c Hono context.
+ * @returns JSON response with web asset or 404 if not found.
  */
 export async function getWebAssetById(c: Context) {
   const id = c.req.param("id");
@@ -55,6 +65,11 @@ export async function getWebAssetById(c: Context) {
  *     summary: List host assets
  *     tags: [Assets]
  */
+/**
+ * List host assets.
+ * @param c Hono context.
+ * @returns JSON response with host assets list.
+ */
 export async function listHostAssets(c: Context) {
   const items = await svc.getHostAssets();
   return ok(c, toHostAssetListResponse(items));
@@ -66,6 +81,11 @@ export async function listHostAssets(c: Context) {
  *   get:
  *     summary: Get a host asset by id
  *     tags: [Assets]
+ */
+/**
+ * Get a host asset by id.
+ * @param c Hono context.
+ * @returns JSON response with host asset or 404 if not found.
  */
 export async function getHostAssetById(c: Context) {
   const id = c.req.param("id");
@@ -95,6 +115,11 @@ export async function getHostAssetById(c: Context) {
  *       200: { description: Created new or updated existing web assets }
  *       415: { description: Only JSON file is accepted }
  *       412: { description: Malformed JSON or no array found }
+ */
+/**
+ * Upload and upsert web assets from multipart JSON file.
+ * @param c Hono context.
+ * @returns JSON response with processed web assets or error.
  */
 export async function uploadWebAssets(c: Context) {
   const ct = c.req.header("content-type") || "";
@@ -184,6 +209,11 @@ export async function uploadWebAssets(c: Context) {
  *       415: { description: Only JSON file is accepted }
  *       412: { description: Malformed JSON or no array found }
  */
+/**
+ * Upload and upsert host assets from multipart JSON file.
+ * @param c Hono context.
+ * @returns JSON response with processed host assets or error.
+ */
 export async function uploadHostAssets(c: Context) {
   const ct = c.req.header("content-type") || "";
   if (!ct.startsWith("multipart/form-data")) return fail(c, "Only multipart/form-data is accepted for file uploads", 415);
@@ -259,6 +289,11 @@ export async function uploadHostAssets(c: Context) {
  *     summary: Delete a web asset and its summary
  *     tags: [Assets]
  */
+/**
+ * Delete a web asset and its summary; cancels active jobs.
+ * @param c Hono context.
+ * @returns JSON response confirming deletion or 404 if not found.
+ */
 export async function deleteWebAsset(c: Context) {
   try {
     const id = c.req.param("id");
@@ -290,6 +325,11 @@ export async function deleteWebAsset(c: Context) {
  *   delete:
  *     summary: Delete a host asset and its summary
  *     tags: [Assets]
+ */
+/**
+ * Delete a host asset and its summary; cancels active jobs.
+ * @param c Hono context.
+ * @returns JSON response confirming deletion or 404 if not found.
  */
 export async function deleteHostAsset(c: Context) {
   try {
@@ -323,6 +363,11 @@ export async function deleteHostAsset(c: Context) {
  *     summary: Get a web asset summary by id
  *     tags: [Assets]
  */
+/**
+ * Get web asset summary or job status.
+ * @param c Hono context.
+ * @returns JSON response with summary, job status, or 404 if not found.
+ */
 export async function getWebAssetSummary(c: Context) {
   const id = c.req.param("id");
 
@@ -350,6 +395,11 @@ export async function getWebAssetSummary(c: Context) {
  *   get:
  *     summary: Get a host asset summary by id
  *     tags: [Assets]
+ */
+/**
+ * Get host asset summary or job status.
+ * @param c Hono context.
+ * @returns JSON response with summary, job status, or 404 if not found.
  */
 export async function getHostAssetSummary(c: Context) {
   const id = c.req.param("id");

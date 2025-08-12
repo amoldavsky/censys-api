@@ -5,7 +5,8 @@ import type {
 } from "@/api/v1/assets/models/asset-summary.dto";
 
 /**
- * Convert WebAssetSummary domain model to response DTO
+ * Convert WebAssetSummary domain model to response DTO.
+ * @param summary Web asset summary domain model.
  */
 export function toWebAssetSummaryResponse(summary: WebAssetSummary): WebAssetSummaryResponseDTO {
   return {
@@ -25,7 +26,8 @@ export function toWebAssetSummaryResponse(summary: WebAssetSummary): WebAssetSum
 }
 
 /**
- * Convert HostAssetSummary domain model to response DTO
+ * Convert HostAssetSummary domain model to response DTO.
+ * @param summary Host asset summary domain model.
  */
 export function toHostAssetSummaryResponse(summary: HostAssetSummary): HostAssetSummaryResponseDTO {
   return {

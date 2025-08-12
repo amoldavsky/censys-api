@@ -6,6 +6,11 @@ import type {
 } from "@/api/v1/assets/models/asset.dto";
 
 // Web Asset Mappers
+/**
+ * Map a WebAsset domain object to API response DTO.
+ * @param asset Web asset with optional metadata fields.
+ * @returns Web asset response DTO.
+ */
 export function toWebAssetResponse(asset: WebAsset & { id?: string; source?: string; createdAt?: Date; updatedAt?: Date }): WebAssetResponseDTO {
   return {
     id: asset.id || "unknown",
@@ -19,6 +24,11 @@ export function toWebAssetResponse(asset: WebAsset & { id?: string; source?: str
   };
 }
 
+/**
+ * Map a list of WebAsset objects to list response DTO.
+ * @param items Array of web assets with optional metadata fields.
+ * @returns List response DTO containing web assets and total count.
+ */
 export function toWebAssetListResponse(items: (WebAsset & { id?: string; source?: string; createdAt?: Date; updatedAt?: Date })[]): ListAssetsResponseDTO<WebAssetResponseDTO> {
   return {
     items: items.map(toWebAssetResponse),
@@ -27,6 +37,11 @@ export function toWebAssetListResponse(items: (WebAsset & { id?: string; source?
 }
 
 // Host Asset Mappers
+/**
+ * Map a HostAsset domain object to API response DTO.
+ * @param asset Host asset with optional metadata fields.
+ * @returns Host asset response DTO.
+ */
 export function toHostAssetResponse(asset: HostAsset & { id?: string; source?: string; createdAt?: Date; updatedAt?: Date }): HostAssetResponseDTO {
   return {
     id: asset.id || "unknown",
@@ -41,6 +56,11 @@ export function toHostAssetResponse(asset: HostAsset & { id?: string; source?: s
   };
 }
 
+/**
+ * Map a list of HostAsset objects to list response DTO.
+ * @param items Array of host assets with optional metadata fields.
+ * @returns List response DTO containing host assets and total count.
+ */
 export function toHostAssetListResponse(items: (HostAsset & { id?: string; source?: string; createdAt?: Date; updatedAt?: Date })[]): ListAssetsResponseDTO<HostAssetResponseDTO> {
   return {
     items: items.map(toHostAssetResponse),

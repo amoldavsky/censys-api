@@ -9,6 +9,10 @@ import type {WebAssetDoc} from "@/api/v1/assets/models/asset.model";
 import logger from "@/utils/logger";
 
 
+/**
+ * List all web assets from the store.
+ * @returns Promise resolving to an array of validated web assets.
+ */
 export async function getWebAssets(): Promise<WebAsset[]> {
   return (await store.listWebAssets()).map((a: any) => {
     const parsed = WebAssetSchema.parse(a);
@@ -16,6 +20,10 @@ export async function getWebAssets(): Promise<WebAsset[]> {
   });
 }
 
+/**
+ * List all host assets from the store with safe parsing.
+ * @returns Promise resolving to an array of validated host assets. Malformed entries are downgraded to minimal objects.
+ */
 export async function getHostAssets(): Promise<HostAsset[]> {
   return (await store.listHostAssets()).map((a: any) => {
     // Ensure id field exists before parsing (use _id as fallback for existing records)
@@ -39,6 +47,11 @@ export async function getHostAssets(): Promise<HostAsset[]> {
   });
 }
 
+/**
+ * Get a web asset by id.
+ * @param id Asset identifier.
+ * @returns Promise resolving to the web asset or null when not found/invalid.
+ */
 export async function getWebAssetById(id: string): Promise<WebAsset | null> {
   const assetStored = await store.getWebAssetById(id);
   if (!assetStored) return null;
@@ -53,6 +66,11 @@ export async function getWebAssetById(id: string): Promise<WebAsset | null> {
   return { ...parseResult.data, id: assetStored._id };
 }
 
+/**
+ * Get a host asset by id.
+ * @param id Asset identifier.
+ * @returns Promise resolving to the host asset or null when not found/invalid.
+ */
 export async function getHostAssetById(id: string): Promise<HostAsset | null> {
   const assetStored = await store.getHostAssetById(id);
   if (!assetStored) return null;
@@ -73,6 +91,12 @@ export async function getHostAssetById(id: string): Promise<HostAsset | null> {
 }
 
 // Bulk upsert (create or update) web assets
+/**
+ * Bulk upsert web assets and return the persisted representations.
+ * Derives id from the shortest domain when missing.
+ * @param assets Web assets to upsert.
+ * @returns Promise resolving to processed web assets.
+ */
 export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
   if (!assets.length) {
     await store.insertWebAssets([]);
@@ -107,6 +131,12 @@ export async function insertWebAssets(assets: WebAsset[]): Promise<WebAsset[]> {
   return results;
 }
 
+/**
+ * Bulk upsert host assets and return the persisted representations.
+ * Requires each asset to include an id.
+ * @param assets Host assets to upsert.
+ * @returns Promise resolving to processed host assets.
+ */
 export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]> {
   if (!assets.length) {
     await store.insertHostAssets([]);
@@ -141,6 +171,11 @@ export async function insertHostAssets(assets: HostAsset[]): Promise<HostAsset[]
   return results;
 }
 
+/**
+ * Delete a web asset by id.
+ * @param id Asset identifier.
+ * @returns Promise resolving to true if a record was deleted.
+ */
 export async function deleteWebAsset(id: string): Promise<boolean> {
   const deleted = await store.deleteWebAsset(id);
   if (deleted) {
@@ -149,6 +184,11 @@ export async function deleteWebAsset(id: string): Promise<boolean> {
   return deleted;
 }
 
+/**
+ * Delete a host asset by id.
+ * @param id Asset identifier.
+ * @returns Promise resolving to true if a record was deleted.
+ */
 export async function deleteHostAsset(id: string): Promise<boolean> {
   const deleted = await store.deleteHostAsset(id);
   if (deleted) {

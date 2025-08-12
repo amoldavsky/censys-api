@@ -61,6 +61,11 @@ import logger from "@/utils/logger";
  *       500:
  *         description: Server error
  */
+/**
+ * Handle chat request; validates input and delegates to service.
+ * @param c Hono context.
+ * @returns JSON response with chat assistant message.
+ */
 export async function chat(c: Context) {
   try {
     // Parse and validate request body (middleware handles snake_case to camelCase conversion)

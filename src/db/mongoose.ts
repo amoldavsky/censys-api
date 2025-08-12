@@ -11,6 +11,11 @@ type ConnectOpts = {
 
 let connectInFlight: Promise<typeof mongoose> | null = null;
 
+/**
+ * Connect to MongoDB with small retry loop.
+ * @param opts Connection options including URI and timeouts.
+ * @returns Promise resolving to mongoose instance.
+ */
 export async function connect(opts: ConnectOpts = {}) {
   if (isConnected()) return mongoose;
 
@@ -48,6 +53,10 @@ export async function connect(opts: ConnectOpts = {}) {
   return connectInFlight;
 }
 
+/**
+ * Disconnect from MongoDB and reset connection state.
+ * @returns Promise that resolves when disconnection is complete.
+ */
 export async function disconnect() {
   try {
     await mongoose.disconnect();
@@ -56,6 +65,10 @@ export async function disconnect() {
   }
 }
 
+/**
+ * Whether Mongoose reports a connected state.
+ * @returns True if connection state is 1 (connected).
+ */
 export function isConnected(): boolean {
   // 1 = connected, 2 = connecting
   return mongoose.connection.readyState === 1;
@@ -64,6 +77,11 @@ export function isConnected(): boolean {
 /**
  * Real round-trip check. Throws on failure.
  * Use in readiness checks.
+ */
+/**
+ * Round-trip ping against MongoDB admin command. Throws on failure.
+ * @param options Ping options including timeout.
+ * @returns Promise that resolves on successful ping or rejects on failure.
  */
 export async function ping({ timeoutMs = 2_000 }: { timeoutMs?: number } = {}) {
   if (!isConnected()) {

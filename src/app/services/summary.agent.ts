@@ -230,6 +230,11 @@ function shouldRetry(state: GraphState): "generate" | "__end__" {
   return "generate";
 }
 
+/**
+ * Generate and persist an asset summary via LangGraph (with up to 2 validation retries).
+ * @param payload Job payload containing asset and asset type.
+ * @returns Promise that resolves when summary is generated and persisted.
+ */
 export async function generateSummary(payload: SummaryJobPayload): Promise<void> {
   const { asset, assetType } = payload;
   const assetId = asset.id;
